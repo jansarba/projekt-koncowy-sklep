@@ -43,8 +43,9 @@ const Register = () => {
       navigate('/login');
     } catch (err) {
       // Display error message from server or fallback to a generic error
+      console.log('Registration error:', err);
       setError(
-        err.response?.data?.message || 'Failed to register. Please try again.'
+        'Failed to register. Please try again.'
       );
     }
   };
