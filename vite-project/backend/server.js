@@ -232,9 +232,9 @@ app.post(
     try {
       const client = await pool.connect();
 
-      // Upload files to S3
-      const imageFileName = image[0].originalname.replace(/\s+/g, '_');
-      const mp3FileName = mp3[0].originalname.replace(/\s+/g, '_');
+      // Upload files to S3, replace spaces and parentheses in filenames
+      const imageFileName = image[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
+      const mp3FileName = mp3[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
 
       const imageParams = {
         Bucket: 'beatstore-bucket/images',
@@ -302,42 +302,57 @@ app.post(
 );
 // Route to fetch all beats and generate presigned URLs using Signature v4
 app.get('/api/beats', async (req, res) => {
+  const { page = 1, limit = 12 } = req.query; // Default to page 1 and limit of 20 if not provided
+  const offset = (page - 1) * limit;  // Calculate the offset for pagination
+
   try {
-      const client = await pool.connect();
-      const result = await client.query('SELECT * FROM beats');
-      client.release();
+    const client = await pool.connect();
 
-      // Generate presigned URLs for each beat using Signature v4
-      const beatsWithPresignedUrls = await Promise.all(
-          result.rows.map(async (beat) => {
-              const mp3Params = {
-                  Bucket: 'beatstore-bucket/mp3',  // Correct bucket name
-                  Key: encodeURIComponent(beat.mp3_url.split('/').pop()),
-                  Expires: 60 * 60, // URL expires in 1 hour
-              };
+    // Query to get the total number of beats for pagination purposes
+    const totalBeatsResult = await client.query('SELECT COUNT(*) FROM beats');
+    const totalBeats = parseInt(totalBeatsResult.rows[0].count, 10);
+    const totalPages = Math.ceil(totalBeats / limit); // Calculate total pages
 
-              const imageParams = {
-                  Bucket: 'beatstore-bucket/images',  // Correct bucket name
-                  Key: encodeURIComponent(beat.image_url.split('/').pop()),
-                  Expires: 60 * 60, // URL expires in 1 hour
-              };
+    // Query to get the beats for the current page with pagination
+    const result = await client.query('SELECT * FROM beats LIMIT $1 OFFSET $2', [limit, offset]);
 
-              // Get presigned URLs for both MP3 and Image using Signature V4
-              const mp3Url = s3.getSignedUrl('getObject', mp3Params);
-              const imageUrl = s3.getSignedUrl('getObject', imageParams);
+    client.release();
 
-              return {
-                  ...beat,
-                  mp3_url: mp3Url,
-                  image_url: imageUrl,
-              };
-          })
-      );
+    // Generate presigned URLs for each beat using Signature v4
+    const beatsWithPresignedUrls = await Promise.all(
+      result.rows.map(async (beat) => {
+        const mp3Params = {
+          Bucket: 'beatstore-bucket/mp3', // Correct bucket name
+          Key: encodeURIComponent(beat.mp3_url.split('/').pop()),
+          Expires: 60 * 60, // URL expires in 1 hour
+        };
 
-      res.status(200).json(beatsWithPresignedUrls);
+        const imageParams = {
+          Bucket: 'beatstore-bucket/images', // Correct bucket name
+          Key: encodeURIComponent(beat.image_url.split('/').pop()),
+          Expires: 60 * 60, // URL expires in 1 hour
+        };
+
+        // Get presigned URLs for both MP3 and Image using Signature V4
+        const mp3Url = s3.getSignedUrl('getObject', mp3Params);
+        const imageUrl = s3.getSignedUrl('getObject', imageParams);
+
+        return {
+          ...beat,
+          mp3_url: mp3Url,
+          image_url: imageUrl,
+        };
+      })
+    );
+
+    // Send back the data including the beats and the total pages for pagination
+    res.status(200).json({
+      beats: beatsWithPresignedUrls,
+      totalPages,
+    });
   } catch (error) {
-      console.error('Error fetching beats:', error);
-      res.status(500).json({ error: 'Internal server error' });
+    console.error('Error fetching beats:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

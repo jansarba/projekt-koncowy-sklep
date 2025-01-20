@@ -194,7 +194,7 @@ export const BeatDetailsPage = () => {
 
   return (
     <div className="beat-details-page">
-      <div className="beat-details flex flex-col md:flex-row gap-4 flex-wrap justify-around sm:justify-between">
+      <div className="beat-details flex flex-col md:flex-row gap-4 flex-wrap justify-around lg:justify-between">
         {/* Beat Info */}
         <div className="flex flex-col gap-4 flex-grow max-w-48 max-h-[320px]">
           <div className="text-2xl font-bold flex">
@@ -220,9 +220,26 @@ export const BeatDetailsPage = () => {
             </div>
           </div>
         </div>
-  
+  <div className='flex flex-col'>
         {/* Licenses */}
         <Licenses setSelectedLicense={setSelectedLicense} />
+        {/* Add to Cart Button below Licenses */}
+      <div className="add-to-cart-button mt-4">
+        <button
+          onClick={handleAddToCart}
+          className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
+        >
+          Add to Cart
+        </button>
+  
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
+            {successMessage}
+          </div>
+        )}
+      </div>
+      </div>
   
         {/* Beat Image */}
         <div className='justify-center items-center'>
@@ -239,32 +256,10 @@ export const BeatDetailsPage = () => {
         </div>
       </div>
   
-      {/* Add to Cart Button below Licenses */}
-      <div className="add-to-cart-button mt-4">
-        <button
-          onClick={handleAddToCart}
-          className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
-        >
-          Add to Cart
-        </button>
-  
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
-            {successMessage}
-          </div>
-        )}
-      </div>
+      
   
       <div className="waveform-section flex flex-col items-center gap-4 p-4">
-        <div className="relative w-full">
-          <WaveformOverlay
-            audioUrl={beatDetails.mp3_url}
-            isPlaying={isPlaying}
-            setCurrentTime={setCurrentTime}
-          />
-        </div>
-        <div className="play-pause-button mt-4">
+      <div className="play-pause-button mt-4">
           <button 
             className="p-2 bg-darkes text-white rounded flex items-center justify-center"
             onClick={handlePlayPause}
@@ -278,6 +273,14 @@ export const BeatDetailsPage = () => {
             </svg>
           </button>
         </div>
+        <div className="relative w-full">
+          <WaveformOverlay
+            audioUrl={beatDetails.mp3_url}
+            isPlaying={isPlaying}
+            setCurrentTime={setCurrentTime}
+          />
+        </div>
+        
       </div>
 
       {beatDetails.sample && (
