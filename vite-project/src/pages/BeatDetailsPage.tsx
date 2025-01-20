@@ -194,13 +194,20 @@ export const BeatDetailsPage = () => {
 
   return (
     <div className="beat-details-page">
-      <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap h-[320px]">
+      <div className="beat-details flex flex-col md:flex-row gap-4 flex-wrap justify-around sm:justify-between">
         {/* Beat Info */}
-        <div className="flex flex-col gap-4 flex-grow max-w-48 h-[320px]">
+        <div className="flex flex-col gap-4 flex-grow max-w-48 max-h-[320px]">
           <div className="text-2xl font-bold flex">
-            {beatDetails.title} <div className='text-secondary'>*</div>
-          </div>
-          <div className="beat-info flex flex-col justify-between h-[274px]">
+          {beatDetails.title}
+  {beatDetails.sample && (
+    <div className="relative group">
+      <div className="text-secondary hover:text-red-500 cursor-pointer ml-1">*</div>
+      <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-black text-secondary text-xs p-2 rounded shadow-lg w-64">
+        Ten bit jest samplowany! Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt
+      </div>
+    </div>
+  )}          </div>
+          <div className="beat-info flex flex-col justify-between">
             <div>
               <p><strong>BPM:</strong> {beatDetails.bpm}</p>
               <p><strong>Key:</strong> {beatDetails.musical_key}</p>
