@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, CalculatorIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
+import { usePagination } from "../contexts/PaginationContext";
+
 
 export const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { resetToFirstPage } = usePagination();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
@@ -21,6 +26,7 @@ export const Header = () => {
         // Token is valid
         setIsLoggedIn(true);
         setUserName(decodedToken?.name || 'User');
+        console.log('User:', decodedToken?.name);
         // Check if user is an admin (this will be set from the backend)
         setIsAdmin(decodedToken?.role === 'admin'); // Assuming role is 'admin'
       } else {
@@ -44,19 +50,25 @@ export const Header = () => {
   };
 
   return (
-    <div className="bg-darkest text-text p-6 sticky top-0 w-full z-10 flex flex-wrap justify-between items-center gap-4">
+    <div className="bg-darkest text-text p-4 sm:p-6 sticky top-0 w-full z-10 flex flex-wrap justify-between items-center gap-4">
       {/* Title */}
       <h1
-        className="font-bold font-sans text-3xl cursor-pointer text-center w-full sm:w-auto"
-        onClick={() => navigate('/')}
+        className="font-bold font-sans sm:text-3xl text-2xl cursor-pointer text-center w-full sm:w-auto"
+        onClick={() => {
+          if (location.pathname === "/") {
+            resetToFirstPage(); // Only reset if on the home page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          navigate('/'); // Navigate to the home page regardless
+        }}
       >
         gnusny sklep na bity
       </h1>
 
       {/* Buttons container */}
-      <div className="flex flex-wrap justify-center items-center gap-4 w-full sm:w-auto">
+      <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:justify-between justify-around">
         {/* Login/Register or User Info */}
-        <div className="flex gap-4 justify-center items-center">
+        <div className="flex gap-4 justify-center items-center flex-row-reverse sm:flex-row">
           {isLoggedIn ? (
             <>
               <span className="mr-4">{userName}</span>
@@ -84,6 +96,8 @@ export const Header = () => {
             </>
           )}
         </div>
+        <div></div>
+        <div></div>
 
         {/* Admin-specific Upload Beat button */}
         {isAdmin && (
@@ -117,7 +131,7 @@ export const Header = () => {
           {/* Orders button */}
           <button
             onClick={() => navigate('/ledger')}
-            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group"
+            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group mr-6"
             aria-label="Go to ledger"
           >
             <CalculatorIcon className="h-6 w-6" />

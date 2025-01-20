@@ -125,8 +125,8 @@ export const Filters: React.FC = () => {
     setTags(tags.map(tag => ({ ...tag, isSelected: false }))); // Reset the selection
     dispatch({
     type: 'SET_TAGS',
-    payload: [],
-  });
+      payload: [],
+    });
   };
 
   return (

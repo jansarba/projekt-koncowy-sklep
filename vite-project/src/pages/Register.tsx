@@ -51,8 +51,8 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
-      <form className="bg-darkes p-6 rounded-md shadow-lg" onSubmit={handleSubmit}>
+    <div className="flex justify-center">
+      <form className="bg-darkest p-6 rounded-md shadow-lg" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-4">Register</h2>
         {error && (
           <div className="text-red-500 bg-red-100 p-2 rounded mb-4">
@@ -64,7 +64,7 @@ const Register = () => {
           <label className="block mb-2">Name</label>
           <input
             type="text"
-            className="w-full p-2 border rounded bg-darkes"
+            className="w-full p-2 border rounded bg-black"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -75,7 +75,7 @@ const Register = () => {
           <label className="block mb-2">Email</label>
           <input
             type="email"
-            className="w-full p-2 border rounded bg-darkes"
+            className="w-full p-2 border rounded bg-black"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -86,7 +86,7 @@ const Register = () => {
           <label className="block mb-2">Password</label>
           <input
             type="password"
-            className="w-full p-2 border rounded bg-darkes"
+            className="w-full p-2 border rounded bg-black"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -97,14 +97,14 @@ const Register = () => {
           <label className="block mb-2">Confirm Password</label>
           <input
             type="password"
-            className="w-full p-2 border rounded bg-darkes"
+            className="w-full p-2 border rounded bg-black"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
         </div>
 
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4">
+        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600 transition">
           Register
         </button>
       </form>
