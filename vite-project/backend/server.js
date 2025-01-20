@@ -403,6 +403,7 @@ app.get('/api/beats/:id', async (req, res) => {
           mp3_url: mp3Url,
           image_url: imageUrl,
           authors: beat.authors, // List of authors
+          sample: beat.sample,
       });
   } catch (error) {
       console.error('Error fetching beat:', error);
