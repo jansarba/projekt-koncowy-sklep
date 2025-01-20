@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext'; // Adjust the path if necessary
+// import silence from "../bruh/silence.mp3"; // Adjust path as needed
 
 export type ItemProps = {
   id: number;

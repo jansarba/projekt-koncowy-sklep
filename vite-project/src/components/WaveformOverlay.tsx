@@ -40,7 +40,7 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
         barWidth: 0,
         hideScrollbar: true,
         height: 75,
-        backend: 'WebAudio',
+        backend: 'MediaElement',
         fetchParams: {
           cache: 'default', // Default cache behavior
           mode: 'cors', // CORS mode for cross-origin requests
@@ -54,6 +54,7 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
         console.log('Waveform is ready');
         setIsLoaded(true);
         if (isPlaying) {
+
           wavesurferRef.current?.play();
         }
       });
