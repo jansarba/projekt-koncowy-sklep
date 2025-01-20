@@ -48,15 +48,19 @@ export const Footer: React.FC = () => {
             )}
           </svg>
         </div>
+        {/* <div className="flex flex-col items-start gap-2 absolute">
+            Playing:
+        <ScrollingText width={100} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
+        </div> */}
       </div>
 
       {/* Waveform Section */}
-      <div className="flex w-full items-center justify-between gap-4 -z-10">
+      <div className="flex w-full items-center justify-between gap-1 sm:gap-4 -z-10">
         <div className="flex flex-col items-start gap-2 absolute">
             Playing:
-        <ScrollingText width={100} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
+        <ScrollingText width={90} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
         </div>
-        <div className='min-w-28 z-10'>
+        <div className='min-w-24 z-10 sm:min-w-28'>
 
         </div>
         {currentBeatUrl && (
