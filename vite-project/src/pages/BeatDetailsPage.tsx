@@ -225,10 +225,10 @@ export const BeatDetailsPage = () => {
         <Licenses setSelectedLicense={setSelectedLicense} />
   
         {/* Beat Image */}
-        <div className='w-fit'>
+        <div className='justify-center items-center'>
           <div
-            className="flex justify-center items-center w-full md:w-auto order-first md:order-none">
-            <div className="beat-image bg-darkest flex justify-center items-center rounded aspect-square w-full md:w-80">
+            className="flex justify-center items-center md:w-auto order-first md:order-none">
+            <div className="beat-image bg-darkest flex justify-center items-center rounded aspect-square w-fit md:w-80">
               <img
                 src={beatDetails.image_url}
                 alt={beatDetails.title}
