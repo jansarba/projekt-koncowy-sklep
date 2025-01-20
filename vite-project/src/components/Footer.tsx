@@ -19,13 +19,13 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-32 z-10 justify-center">
-      <div className="relative mr-4 aspect-square bg-darkest p-2 group flex justify-center items-center">
+    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-32 z-10 justify-center items-center">
+      <div className="relative mr-4 aspect-square bg-darkest p-2 group flex justify-center items-center sm:w-auto sm:h-auto w-16 h-16">
         {currentBeatImage && (
           <img
             src={currentBeatImage}
             alt="Currently playing"
-            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center"
+            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center sm:w-32 sm:h-32 w-14"
           />
         )}
         {/* Play/Pause Icon */}
