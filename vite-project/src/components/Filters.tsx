@@ -117,7 +117,10 @@ export const Filters: React.FC = () => {
     setSelectedScale('');
     setSelectedAlteration('');
     setBpmRange([10, 300]);
-    setTags([]);
+    dispatch({
+      type: 'SET_TAGS',
+      payload: [],
+    });
   };
 
   return (
