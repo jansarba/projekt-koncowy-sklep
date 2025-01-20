@@ -1,6 +1,8 @@
 import { Radio, RadioGroup } from '@headlessui/react'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export interface License {
@@ -11,17 +13,18 @@ export interface License {
 
 interface LicensesProps {
   setSelectedLicense: (license: License | null) => void; // Function passed from the parent component
-  beatId: string; // Pass the beatId to filter licenses
 }
 
-export const Licenses = ({ setSelectedLicense, beatId }: LicensesProps) => {
+export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
+  const { id } = useParams(); // Get the beat ID from the URL parameters
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selected, setSelected] = useState<License | null>(null);
+  const [isMp3Only, setIsMp3Only] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
-        const response = await fetch(`${baseURL}/api/licenses?beatId=${beatId}`);
+        const response = await fetch(`${baseURL}/api/licenses?beatId=${id}`); // Add the beatId to the request URL
         if (response.ok) {
           const data = await response.json();
           setLicenses(data);
@@ -38,8 +41,31 @@ export const Licenses = ({ setSelectedLicense, beatId }: LicensesProps) => {
       }
     };
 
-    fetchLicenses();
-  }, [setSelectedLicense, beatId]);
+    if (id) {
+      fetchLicenses(); // Only fetch licenses if beatId is available
+    }
+  }, [id, setSelectedLicense]);
+
+  useEffect(() => {
+    // Fetch ismp3only information from beat
+    const fetchBeatDetails = async () => {
+      try {
+        const response = await fetch(`${baseURL}/api/beats/${id}`); // Endpoint to fetch beat details
+        if (response.ok) {
+          const beatData = await response.json();
+          setIsMp3Only(beatData.ismp3only);
+        } else {
+          console.error('Failed to fetch beat details');
+        }
+      } catch (error) {
+        console.error('Error fetching beat details:', error);
+      }
+    };
+
+    if (id) {
+      fetchBeatDetails(); // Fetch ismp3only info when beatId is available
+    }
+  }, [id]);
 
   useEffect(() => {
     // Whenever selected license changes, pass it back to the parent
@@ -56,7 +82,8 @@ export const Licenses = ({ setSelectedLicense, beatId }: LicensesProps) => {
             <Radio
               key={license.id}
               value={license}
-              className="group relative flex cursor-pointer rounded-lg bg-white/5 py-3 px-5 text-white shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-white/10"
+              className={`group relative flex cursor-pointer rounded-lg py-3 px-5 text-white shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-white/10 ${isMp3Only && license.name !== 'mp3' ? 'bg-gray-500 cursor-not-allowed opacity-50' : ''}`}
+              disabled={isMp3Only && license.name !== 'mp3'} // Disable the license if it's not 'mp3' and ismp3only is true
             >
               <div className="flex w-full items-center justify-between">
                 <div className="text-sm/6">
