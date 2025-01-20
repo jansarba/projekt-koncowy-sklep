@@ -511,7 +511,13 @@ app.get('/api/licenses', async (req, res) => {
     const { beatId } = req.query;
 
     if (!beatId) {
-      return res.status(400).json({ error: 'Beat ID is required' });
+      let query = 'SELECT * FROM licenses';
+      const result = await pool.query
+      (query);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'No licenses found' });
+      }
+      return res.status(200).json(result.rows);
     }
 
     // Fetch the 'ismp3only' field from the beats table
