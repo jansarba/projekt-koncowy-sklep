@@ -378,6 +378,7 @@ app.get('/api/beats/:id', async (req, res) => {
           image_url: imageUrl,
           authors: beat.authors, // List of authors
           sample: beat.sample,
+          ismp3only: beat.ismp3only,
       });
   } catch (error) {
       console.error('Error fetching beat:', error);
@@ -480,11 +481,17 @@ app.get('/api/authors', async (req, res) => {
 
 app.get('/api/licenses', async (req, res) => {
   try {
-    // Assuming you're getting the beat ID from the query parameters or request body
-    const { beatId } = req.query;  // You can change this depending on how you pass the beat ID
+    // Retrieve the beatId from query parameters
+    const { beatId } = req.query;
 
     if (!beatId) {
-      return res.status(400).json({ error: 'Beat ID is required' });
+      let query = 'SELECT * FROM licenses';
+      const result = await pool.query
+      (query);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'No licenses found' });
+      }
+      return res.status(200).json(result.rows);
     }
 
     // Fetch the 'ismp3only' field from the beats table
@@ -495,18 +502,26 @@ app.get('/api/licenses', async (req, res) => {
 
     const isMp3Only = beatResult.rows[0].ismp3only;
 
-    // If ismp3only is true, filter licenses to only include 'mp3' license
+    // Query to fetch the licenses
     let query = 'SELECT * FROM licenses';
+    let params = [];
+
     if (isMp3Only) {
-      query += " WHERE name = 'mp3'"; // Adjust this based on the actual license name for mp3
+      // Filter licenses if ismp3only is true
+      query += " WHERE name = 'mp3'"; // Adjust the name if needed
     }
 
     // Fetch the licenses from the database
-    const licensesResult = await pool.query(query);
+    const licensesResult = await pool.query(query, params);
+    
+    if (licensesResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No licenses found' });
+    }
+
     res.status(200).json(licensesResult.rows);
   } catch (err) {
     console.error('Error fetching licenses:', err);
-    res.status(500).json({ error: 'Failed to fetch licenses' });
+    res.status(500).json({ error: 'Failed to fetch licenses', details: err.message });
   }
 });
 
