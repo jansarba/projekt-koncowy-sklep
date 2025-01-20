@@ -63,8 +63,9 @@ export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
   return (
     <div className="px-4">
       {isMp3Only && (
-        <div className="text-sm text-white/80 mb-4">
-          <p>Note: This beat is only available with the MP3 license.</p>
+        <div className="text-sm text-white/80 mb-4 max-w-[256px]">
+          <p>Póki co, ten bit dostępny jest tylko w mp3 - na zamówienie stems lub exclusive jego autor zrobi ci reproda. Napisz do nas!
+          </p>
         </div>
       )}
       <div className="mx-auto max-w-xs min-w-64">

@@ -197,28 +197,26 @@ export const BeatDetailsPage = () => {
       <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap h-[320px]">
         {/* Beat Info */}
         <div className="flex flex-col gap-4 flex-grow max-w-48 h-[320px]">
-          <div className="text-2xl font-bold">{beatDetails.title}</div>
+          <div className="text-2xl font-bold flex">
+            {beatDetails.title} <div className='text-secondary'>*</div>
+          </div>
           <div className="beat-info flex flex-col justify-between h-[274px]">
             <div>
-            <p><strong>BPM:</strong> {beatDetails.bpm}</p>
-            <p><strong>Key:</strong> {beatDetails.musical_key}</p>
-            <p><strong>Author:</strong> {beatDetails.authors.join(', ')}</p>
-            <p><strong>Tags:</strong> {beatDetails.tags.join(', ')}</p>
+              <p><strong>BPM:</strong> {beatDetails.bpm}</p>
+              <p><strong>Key:</strong> {beatDetails.musical_key}</p>
+              <p><strong>Author:</strong> {beatDetails.authors.join(', ')}</p>
+              <p><strong>Tags:</strong> {beatDetails.tags.join(', ')}</p>
             </div>
             <div>
-            {/* Conditional Sample Text */}
-          {beatDetails.sample && (
-            <div className="beat-sample mt-4 text-secondary text-[0.5rem]">
-              <p><strong>Ten bit jest samplowany! </strong>Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt</p>
+              {/* Conditional Sample Text */}
+              
             </div>
-          )}
-          </div>
           </div>
         </div>
-
+  
         {/* Licenses */}
         <Licenses setSelectedLicense={setSelectedLicense} />
-
+  
         {/* Beat Image */}
         <div className='w-fit'>
           <div
@@ -233,24 +231,24 @@ export const BeatDetailsPage = () => {
           </div>
         </div>
       </div>
-
+  
       {/* Add to Cart Button below Licenses */}
-<div className="add-to-cart-button mt-4">
-  <button
-    onClick={handleAddToCart}
-    className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
-  >
-    Add to Cart
-  </button>
-
-  {/* Success Message */}
-  {successMessage && (
-    <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
-      {successMessage}
-    </div>
-  )}
-</div>
-
+      <div className="add-to-cart-button mt-4">
+        <button
+          onClick={handleAddToCart}
+          className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
+        >
+          Add to Cart
+        </button>
+  
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
+            {successMessage}
+          </div>
+        )}
+      </div>
+  
       <div className="waveform-section flex flex-col items-center gap-4 p-4">
         <div className="relative w-full">
           <WaveformOverlay
@@ -275,81 +273,89 @@ export const BeatDetailsPage = () => {
         </div>
       </div>
 
+      {beatDetails.sample && (
+                <div className="beat-sample mt-4 text-secondary w-full text-[0.6rem] text-center pt-6">
+                  <p><strong>*Ten bit jest samplowany! </strong>Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt</p>
+                </div>
+              )}
+  
       <div className="opinions-section mt-6">
-  <h2>Opinions</h2>
-
-  {decodedToken ? (
-    <div className="opinion-form mt-4">
-      <form onSubmit={handleOpinionSubmit}>
-        <div>
-          <label htmlFor="authorName">Your Name (optional):</label>
-          <input
-            id="authorName"
-            type="text"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-            className="border p-2 w-full mt-2 text-black"
-            placeholder="Nazwa (opcjonalna)"
-          />
-        </div>
-        <div>
-          <label htmlFor="opinionText">Your Opinion:</label>
-          <textarea
-            id="opinionText"
-            value={opinionText}
-            onChange={(e) => setOpinionText(e.target.value)}
-            className="border p-2 w-full mt-2 text-black"
-            placeholder="Write your opinion here"
-            required
-          />
-        </div>
-        <div>
-          <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
-            Submit Opinion
-          </button>
-        </div>
-      </form>
-    </div>
-  ) : (
-    <p className="mt-4 text-gray-600">You must be logged in to leave an opinion.</p>
-  )}
-
-        <div className="opinions-list mt-6">
-    {opinions.map((opinion) => {
-      const createdAt = opinion.created_at ? new Date(opinion.created_at) : null;
-      const isUserOpinion = decodedToken?.id === opinion.user_id || decodedToken?.role === "admin"; // Check if the opinion belongs to the current user
-
-      return (
-        <div key={opinion.id} className="opinion-item border-b py-4">
-          <div className="text-sm text-gray-600">
-            <strong>{opinion.name}</strong> -{" "}
-            {createdAt && !isNaN(createdAt.getTime())
-              ? createdAt.toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "Invalid Date"}
+        <h2>Opinions</h2>
+  
+        {decodedToken ? (
+          <div className="opinion-form mt-4">
+            <form onSubmit={handleOpinionSubmit}>
+              <div>
+                <label htmlFor="authorName">Your Name (optional):</label>
+                <input
+                  id="authorName"
+                  type="text"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  className="border p-2 w-full mt-2 text-black"
+                  placeholder="Nazwa (opcjonalna)"
+                />
+              </div>
+              <div>
+                <label htmlFor="opinionText">Your Opinion:</label>
+                <textarea
+                  id="opinionText"
+                  value={opinionText}
+                  onChange={(e) => setOpinionText(e.target.value)}
+                  className="border p-2 w-full mt-2 text-black"
+                  placeholder="Write your opinion here"
+                  required
+                />
+              </div>
+              <div>
+                <button type="submit" className="mt-4 p-2 bg-tertiary text-white rounded">
+                  Submit Opinion
+                </button>
+              </div>
+            </form>
           </div>
-          <p>{opinion.content}</p>
-
-          {/* Render Delete Button if the opinion belongs to the current user */}
-          {isUserOpinion && (
-            <button
-              className="text-red-500 mt-2"
-              onClick={() => handleDeleteOpinion(opinion.id)}
-            >
-              Delete
-            </button>
+        ) : (
+          <p className="mt-4 text-gray-600">You must be logged in to leave an opinion.</p>
+        )}
+  
+        <div className="opinions-list mt-6">
+          {opinions.length === 0 ? (
+            <p>No opinions yet</p>
+          ) : (
+            opinions.map((opinion) => {
+              const createdAt = opinion.created_at ? new Date(opinion.created_at) : null;
+              const isUserOpinion = decodedToken?.id === opinion.user_id || decodedToken?.role === "admin"; // Check if the opinion belongs to the current user
+  
+              return (
+                <div key={opinion.id} className="opinion-item border-b py-4">
+                  <div className="text-sm text-gray-600">
+                    <strong>{opinion.name}</strong> -{" "}
+                    {createdAt && !isNaN(createdAt.getTime())
+                      ? createdAt.toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "Invalid Date"}
+                  </div>
+                  <p>{opinion.content}</p>
+  
+                  {/* Render Delete Button if the opinion belongs to the current user */}
+                  {isUserOpinion && (
+                    <button
+                      className="text-red-500 mt-2"
+                      onClick={() => handleDeleteOpinion(opinion.id)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
-      );
-    })}
-  </div>
-
       </div>
     </div>
-  );
-};
+  )};
