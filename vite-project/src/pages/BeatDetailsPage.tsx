@@ -252,39 +252,43 @@ export const BeatDetailsPage = () => {
       </div>
 
       <div className="opinions-section mt-6">
-        <h2>Opinions</h2>
+  <h2>Opinions</h2>
 
-        <div className="opinion-form mt-4">
-          <form onSubmit={handleOpinionSubmit}>
-            <div>
-              <label htmlFor="authorName">Your Name (optional):</label>
-              <input
-                id="authorName"
-                type="text"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                className="border p-2 w-full mt-2"
-                placeholder="Enter your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="opinionText">Your Opinion:</label>
-              <textarea
-                id="opinionText"
-                value={opinionText}
-                onChange={(e) => setOpinionText(e.target.value)}
-                className="border p-2 w-full mt-2"
-                placeholder="Write your opinion here"
-                required
-              />
-            </div>
-            <div>
-              <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
-                Submit Opinion
-              </button>
-            </div>
-          </form>
+  {decodedToken ? (
+    <div className="opinion-form mt-4">
+      <form onSubmit={handleOpinionSubmit}>
+        <div>
+          <label htmlFor="authorName">Your Name (optional):</label>
+          <input
+            id="authorName"
+            type="text"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            className="border p-2 w-full mt-2 text-black"
+            placeholder="Nazwa (opcjonalna)"
+          />
         </div>
+        <div>
+          <label htmlFor="opinionText">Your Opinion:</label>
+          <textarea
+            id="opinionText"
+            value={opinionText}
+            onChange={(e) => setOpinionText(e.target.value)}
+            className="border p-2 w-full mt-2 text-black"
+            placeholder="Write your opinion here"
+            required
+          />
+        </div>
+        <div>
+          <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
+            Submit Opinion
+          </button>
+        </div>
+      </form>
+    </div>
+  ) : (
+    <p className="mt-4 text-gray-600">You must be logged in to leave an opinion.</p>
+  )}
 
         <div className="opinions-list mt-6">
     {opinions.map((opinion) => {
