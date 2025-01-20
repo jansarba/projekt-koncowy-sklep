@@ -194,21 +194,25 @@ export const BeatDetailsPage = () => {
 
   return (
     <div className="beat-details-page">
-      <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap">
+      <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap h-[320px]">
         {/* Beat Info */}
-        <div className="flex flex-col gap-4 flex-grow max-w-48">
+        <div className="flex flex-col gap-4 flex-grow max-w-48 h-[320px]">
           <div className="text-2xl font-bold">{beatDetails.title}</div>
-          <div className="beat-info">
+          <div className="beat-info flex flex-col justify-between h-[274px]">
+            <div>
             <p><strong>BPM:</strong> {beatDetails.bpm}</p>
             <p><strong>Key:</strong> {beatDetails.musical_key}</p>
             <p><strong>Author:</strong> {beatDetails.authors.join(', ')}</p>
             <p><strong>Tags:</strong> {beatDetails.tags.join(', ')}</p>
+            </div>
+            <div>
             {/* Conditional Sample Text */}
           {beatDetails.sample && (
-            <div className="beat-sample mt-4">
-              <p><strong>Sample:</strong> {beatDetails.sample}</p>
+            <div className="beat-sample mt-4 text-secondary text-[0.5rem]">
+              <p><strong>Ten bit jest samplowany! </strong>Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt</p>
             </div>
           )}
+          </div>
           </div>
         </div>
 

@@ -13,6 +13,7 @@ const UploadBeat: React.FC = () => {
     const [tagOptions, setTagOptions] = useState<{ value: string; label: string }[]>([]);
     const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
     const [sample, setSample] = useState('');
+    const [ismp3only, setIsMp3only] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -132,6 +133,7 @@ const UploadBeat: React.FC = () => {
         formData.append('mp3', mp3File);
         formData.append('authors', formattedAuthors.join(','));
         formData.append('sample', sample);
+        formData.append('ismp3only', ismp3only.toString());
 
         try {
             const response = await fetch(`${baseURL}/api/upload-beat`, {
@@ -244,6 +246,15 @@ const UploadBeat: React.FC = () => {
                             value={sample}
                             onChange={(e) => setSample(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="ismp3only" className="block text-black">zaznacz jak masz tylko mp3 i tylko je sprzedajemy (stare bity co nie mam projektu)</label>
+                        <input
+                            type="checkbox"
+                            id="ismp3only"
+                            checked={ismp3only}
+                            onChange={(e) => setIsMp3only(e.target.checked)}
                         />
                     </div>
                     <div className="flex justify-center mt-6">

@@ -11,16 +11,17 @@ export interface License {
 
 interface LicensesProps {
   setSelectedLicense: (license: License | null) => void; // Function passed from the parent component
+  beatId: string; // Pass the beatId to filter licenses
 }
 
-export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
+export const Licenses = ({ setSelectedLicense, beatId }: LicensesProps) => {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selected, setSelected] = useState<License | null>(null);
 
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
-        const response = await fetch(`${baseURL}/api/licenses`);
+        const response = await fetch(`${baseURL}/api/licenses?beatId=${beatId}`);
         if (response.ok) {
           const data = await response.json();
           setLicenses(data);
@@ -38,7 +39,7 @@ export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
     };
 
     fetchLicenses();
-  }, [setSelectedLicense]);
+  }, [setSelectedLicense, beatId]);
 
   useEffect(() => {
     // Whenever selected license changes, pass it back to the parent
