@@ -63,7 +63,7 @@ export const Filters: React.FC = () => {
     };
   
     fetchTags();
-  }, []);
+  }, [tags]);
 
   const handleTagsChange = (selected: any) => {
     // Normalize the selected tags to lowercase
