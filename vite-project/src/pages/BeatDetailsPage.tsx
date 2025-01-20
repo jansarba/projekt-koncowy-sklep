@@ -10,6 +10,7 @@ export const BeatDetailsPage = () => {
   const navigate = useNavigate();
 
   const [beatDetails, setBeatDetails] = useState<any>(null); // State for beat details
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(true); // Loading state
   const [isPlaying, setIsPlaying] = useState(false); // Local play/pause state
   const [, setCurrentTime] = useState(0); // State for tracking current playback time
@@ -19,6 +20,11 @@ export const BeatDetailsPage = () => {
   const [opinions, setOpinions] = useState<any[]>([]); // State for opinions
   const [opinionText, setOpinionText] = useState(""); // State for opinion text
   const [authorName, setAuthorName] = useState(""); // State for optional author name
+
+  useEffect(() => {
+    // Scroll to the top of the page upon component load
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const fetchBeatDetails = async () => {
@@ -132,7 +138,8 @@ export const BeatDetailsPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(result.message); // Display the success message (can be used for a success notification)
+        setSuccessMessage(result.message); // Set the success message
+
       } else {
         const errorData = await response.json();
         alert(errorData.message); // Display the error message
@@ -196,6 +203,12 @@ export const BeatDetailsPage = () => {
             <p><strong>Key:</strong> {beatDetails.musical_key}</p>
             <p><strong>Author:</strong> {beatDetails.authors.join(', ')}</p>
             <p><strong>Tags:</strong> {beatDetails.tags.join(', ')}</p>
+            {/* Conditional Sample Text */}
+          {beatDetails.sample && (
+            <div className="beat-sample mt-4">
+              <p><strong>Sample:</strong> {beatDetails.sample}</p>
+            </div>
+          )}
           </div>
         </div>
 
@@ -218,14 +231,21 @@ export const BeatDetailsPage = () => {
       </div>
 
       {/* Add to Cart Button below Licenses */}
-      <div className="add-to-cart-button mt-4">
-        <button
-          onClick={handleAddToCart}
-          className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          Add to Cart
-        </button>
-      </div>
+<div className="add-to-cart-button mt-4">
+  <button
+    onClick={handleAddToCart}
+    className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
+  >
+    Add to Cart
+  </button>
+
+  {/* Success Message */}
+  {successMessage && (
+    <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
+      {successMessage}
+    </div>
+  )}
+</div>
 
       <div className="waveform-section flex flex-col items-center gap-4 p-4">
         <div className="relative w-full">

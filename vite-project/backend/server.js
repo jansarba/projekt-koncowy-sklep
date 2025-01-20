@@ -222,7 +222,7 @@ app.post(
   '/api/upload-beat',
   upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]),
   async (req, res) => {
-    const { title, bpm, musical_key, tags, authors } = req.body; // 'authors' is a comma-separated string of author names
+    const { title, bpm, musical_key, tags, authors, sample } = req.body; // 'authors' is a comma-separated string of author names
     const { image, mp3 } = req.files;
 
     if (!title || !bpm || !musical_key || !tags || !authors || !image || !mp3) {
@@ -257,9 +257,9 @@ app.post(
       // Insert beat
       const formattedTags = `{${tags.split(',').map((tag) => tag.trim()).join(',')}}`;
       const beatResult = await client.query(
-        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location]
+        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url, sample)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location, sample]
       );
       const beatId = beatResult.rows[0].id;
 

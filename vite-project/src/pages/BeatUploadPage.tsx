@@ -12,6 +12,7 @@ const UploadBeat: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [tagOptions, setTagOptions] = useState<{ value: string; label: string }[]>([]);
     const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
+    const [sample, setSample] = useState('');
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -44,9 +45,67 @@ const UploadBeat: React.FC = () => {
         fetchData();
     }, []);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const resizeImage = (file: File, maxDimension: number): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    if (!ctx) {
+                        reject(new Error('Could not get canvas context'));
+                        return;
+                    }
+
+                    const aspectRatio = img.width / img.height;
+
+                    if (img.width > img.height) {
+                        canvas.width = Math.min(img.width, maxDimension);
+                        canvas.height = canvas.width / aspectRatio;
+                    } else {
+                        canvas.height = Math.min(img.height, maxDimension);
+                        canvas.width = canvas.height * aspectRatio;
+                    }
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const resizedFile = new File([blob], file.name, { type: file.type });
+                                resolve(resizedFile);
+                            } else {
+                                reject(new Error('Canvas toBlob failed'));
+                            }
+                        },
+                        file.type,
+                        0.9 // Adjust the quality (0.9 is high quality)
+                    );
+                };
+
+                img.onerror = (err) => reject(err);
+                img.src = event.target?.result as string;
+            };
+
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setImageFile(e.target.files[0]);
+            const file = e.target.files[0];
+            try {
+                const resizedImage = await resizeImage(file, 1024);
+                setImageFile(resizedImage);
+            } catch (error) {
+                console.error('Error resizing image:', error);
+                alert('Failed to process the image file.');
+            }
         }
     };
 
@@ -72,6 +131,7 @@ const UploadBeat: React.FC = () => {
         formData.append('image', imageFile);
         formData.append('mp3', mp3File);
         formData.append('authors', formattedAuthors.join(','));
+        formData.append('sample', sample);
 
         try {
             const response = await fetch(`${baseURL}/api/upload-beat`, {
@@ -80,6 +140,7 @@ const UploadBeat: React.FC = () => {
             });
 
             if (response.ok) {
+                console.log(sample)
                 alert('Beat uploaded successfully');
             } else {
                 const errorText = await response.text();
@@ -172,6 +233,16 @@ const UploadBeat: React.FC = () => {
                             id="mp3"
                             accept="audio/mp3"
                             onChange={handleMp3Change}
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="sample" className="block text-black">Sample info: (link/nazwa nuty !opcjonalne!)</label>
+                        <input
+                            type="text"
+                            id="sample"
+                            value={sample}
+                            onChange={(e) => setSample(e.target.value)}
                             className="w-full p-3 border border-gray-300 rounded-md"
                         />
                     </div>

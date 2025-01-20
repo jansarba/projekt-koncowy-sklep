@@ -5,6 +5,11 @@ import { Range } from 'react-range';
 import axios from 'axios';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
+type Tag = {
+  value: string;
+  label: string;
+};
+
 const keyOptions = [
   { value: 'C', label: 'C' },
   { value: 'D', label: 'D' },
@@ -29,7 +34,7 @@ const alterOptions = [
 export const Filters: React.FC = () => {
   const { filters, dispatch } = useFilters();
   const [bpmRange, setBpmRange] = useState(filters.bpmRange);
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [selectedKey, setSelectedKey] = useState(filters.musicalKey.split(' ')[0] || '');
   const [selectedScale, setSelectedScale] = useState(filters.musicalKey.split(' ')[1] || '');
   const [selectedAlteration, setSelectedAlteration] = useState(
@@ -63,7 +68,7 @@ export const Filters: React.FC = () => {
     };
   
     fetchTags();
-  }, [tags]);
+  }, []);
 
   const handleTagsChange = (selected: any) => {
     // Normalize the selected tags to lowercase
@@ -117,10 +122,11 @@ export const Filters: React.FC = () => {
     setSelectedScale('');
     setSelectedAlteration('');
     setBpmRange([10, 300]);
+    setTags(tags.map(tag => ({ ...tag, isSelected: false }))); // Reset the selection
     dispatch({
-      type: 'SET_TAGS',
-      payload: [],
-    });
+    type: 'SET_TAGS',
+    payload: [],
+  });
   };
 
   return (
@@ -153,6 +159,7 @@ export const Filters: React.FC = () => {
           <Select
             isMulti
             options={tags}
+            value={tags.filter(tag => filters.tags.includes(tag.value))}
             onChange={handleTagsChange}
             className="text-black"
           />

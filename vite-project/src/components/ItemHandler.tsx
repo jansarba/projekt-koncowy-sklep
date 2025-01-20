@@ -10,7 +10,7 @@ export const ItemHandler = () => {
 
     useEffect(() => {
         const fetchItems = async () => {
-            console.log("fetchije fetchije");
+            console.log("fetching...");
             console.log(baseURL);
             try {
                 const response = await fetch(`${baseURL}/api/beats`);
