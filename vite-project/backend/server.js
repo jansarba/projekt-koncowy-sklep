@@ -196,7 +196,7 @@ app.post(
   '/api/upload-beat',
   upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]),
   async (req, res) => {
-    const { title, bpm, musical_key, tags, authors } = req.body; // 'authors' is a comma-separated string of author names
+    const { title, bpm, musical_key, tags, authors, sample, ismp3only } = req.body; // 'authors' is a comma-separated string of author names
     const { image, mp3 } = req.files;
 
     if (!title || !bpm || !musical_key || !tags || !authors || !image || !mp3) {
@@ -231,9 +231,9 @@ app.post(
       // Insert beat
       const formattedTags = `{${tags.split(',').map((tag) => tag.trim()).join(',')}}`;
       const beatResult = await client.query(
-        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location]
+        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url, sample, ismp3only)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location, sample, ismp3only]
       );
       const beatId = beatResult.rows[0].id;
 
@@ -377,6 +377,7 @@ app.get('/api/beats/:id', async (req, res) => {
           mp3_url: mp3Url,
           image_url: imageUrl,
           authors: beat.authors, // List of authors
+          sample: beat.sample,
       });
   } catch (error) {
       console.error('Error fetching beat:', error);
@@ -479,8 +480,30 @@ app.get('/api/authors', async (req, res) => {
 
 app.get('/api/licenses', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM licenses');
-    res.status(200).json(result.rows);
+    // Assuming you're getting the beat ID from the query parameters or request body
+    const { beatId } = req.query;  // You can change this depending on how you pass the beat ID
+
+    if (!beatId) {
+      return res.status(400).json({ error: 'Beat ID is required' });
+    }
+
+    // Fetch the 'ismp3only' field from the beats table
+    const beatResult = await pool.query('SELECT ismp3only FROM beats WHERE id = $1', [beatId]);
+    if (beatResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Beat not found' });
+    }
+
+    const isMp3Only = beatResult.rows[0].ismp3only;
+
+    // If ismp3only is true, filter licenses to only include 'mp3' license
+    let query = 'SELECT * FROM licenses';
+    if (isMp3Only) {
+      query += " WHERE name = 'mp3'"; // Adjust this based on the actual license name for mp3
+    }
+
+    // Fetch the licenses from the database
+    const licensesResult = await pool.query(query);
+    res.status(200).json(licensesResult.rows);
   } catch (err) {
     console.error('Error fetching licenses:', err);
     res.status(500).json({ error: 'Failed to fetch licenses' });

@@ -10,6 +10,7 @@ export const BeatDetailsPage = () => {
   const navigate = useNavigate();
 
   const [beatDetails, setBeatDetails] = useState<any>(null); // State for beat details
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(true); // Loading state
   const [isPlaying, setIsPlaying] = useState(false); // Local play/pause state
   const [, setCurrentTime] = useState(0); // State for tracking current playback time
@@ -19,6 +20,11 @@ export const BeatDetailsPage = () => {
   const [opinions, setOpinions] = useState<any[]>([]); // State for opinions
   const [opinionText, setOpinionText] = useState(""); // State for opinion text
   const [authorName, setAuthorName] = useState(""); // State for optional author name
+
+  useEffect(() => {
+    // Scroll to the top of the page upon component load
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const fetchBeatDetails = async () => {
@@ -132,7 +138,8 @@ export const BeatDetailsPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(result.message); // Display the success message (can be used for a success notification)
+        setSuccessMessage(result.message); // Set the success message
+
       } else {
         const errorData = await response.json();
         alert(errorData.message); // Display the error message
@@ -187,15 +194,25 @@ export const BeatDetailsPage = () => {
 
   return (
     <div className="beat-details-page">
-      <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap">
+      <div className="beat-details flex flex-col md:flex-row gap-4 justify-between items-start flex-wrap h-[320px]">
         {/* Beat Info */}
-        <div className="flex flex-col gap-4 flex-grow max-w-48">
+        <div className="flex flex-col gap-4 flex-grow max-w-48 h-[320px]">
           <div className="text-2xl font-bold">{beatDetails.title}</div>
-          <div className="beat-info">
+          <div className="beat-info flex flex-col justify-between h-[274px]">
+            <div>
             <p><strong>BPM:</strong> {beatDetails.bpm}</p>
             <p><strong>Key:</strong> {beatDetails.musical_key}</p>
             <p><strong>Author:</strong> {beatDetails.authors.join(', ')}</p>
             <p><strong>Tags:</strong> {beatDetails.tags.join(', ')}</p>
+            </div>
+            <div>
+            {/* Conditional Sample Text */}
+          {beatDetails.sample && (
+            <div className="beat-sample mt-4 text-secondary text-[0.5rem]">
+              <p><strong>Ten bit jest samplowany! </strong>Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt</p>
+            </div>
+          )}
+          </div>
           </div>
         </div>
 
@@ -218,14 +235,21 @@ export const BeatDetailsPage = () => {
       </div>
 
       {/* Add to Cart Button below Licenses */}
-      <div className="add-to-cart-button mt-4">
-        <button
-          onClick={handleAddToCart}
-          className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          Add to Cart
-        </button>
-      </div>
+<div className="add-to-cart-button mt-4">
+  <button
+    onClick={handleAddToCart}
+    className="w-full p-3 bg-secondary text-white rounded hover:bg-red-500 transition"
+  >
+    Add to Cart
+  </button>
+
+  {/* Success Message */}
+  {successMessage && (
+    <div className="mt-2 p-3 bg-green-200 text-green-700 rounded shadow-md animate-pop-out">
+      {successMessage}
+    </div>
+  )}
+</div>
 
       <div className="waveform-section flex flex-col items-center gap-4 p-4">
         <div className="relative w-full">
@@ -252,39 +276,43 @@ export const BeatDetailsPage = () => {
       </div>
 
       <div className="opinions-section mt-6">
-        <h2>Opinions</h2>
+  <h2>Opinions</h2>
 
-        <div className="opinion-form mt-4">
-          <form onSubmit={handleOpinionSubmit}>
-            <div>
-              <label htmlFor="authorName">Your Name (optional):</label>
-              <input
-                id="authorName"
-                type="text"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                className="border p-2 w-full mt-2"
-                placeholder="Enter your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="opinionText">Your Opinion:</label>
-              <textarea
-                id="opinionText"
-                value={opinionText}
-                onChange={(e) => setOpinionText(e.target.value)}
-                className="border p-2 w-full mt-2"
-                placeholder="Write your opinion here"
-                required
-              />
-            </div>
-            <div>
-              <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
-                Submit Opinion
-              </button>
-            </div>
-          </form>
+  {decodedToken ? (
+    <div className="opinion-form mt-4">
+      <form onSubmit={handleOpinionSubmit}>
+        <div>
+          <label htmlFor="authorName">Your Name (optional):</label>
+          <input
+            id="authorName"
+            type="text"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            className="border p-2 w-full mt-2 text-black"
+            placeholder="Nazwa (opcjonalna)"
+          />
         </div>
+        <div>
+          <label htmlFor="opinionText">Your Opinion:</label>
+          <textarea
+            id="opinionText"
+            value={opinionText}
+            onChange={(e) => setOpinionText(e.target.value)}
+            className="border p-2 w-full mt-2 text-black"
+            placeholder="Write your opinion here"
+            required
+          />
+        </div>
+        <div>
+          <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
+            Submit Opinion
+          </button>
+        </div>
+      </form>
+    </div>
+  ) : (
+    <p className="mt-4 text-gray-600">You must be logged in to leave an opinion.</p>
+  )}
 
         <div className="opinions-list mt-6">
     {opinions.map((opinion) => {

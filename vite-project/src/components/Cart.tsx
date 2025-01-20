@@ -234,6 +234,7 @@ const Cart = () => {
               placeholder="Enter discount code"
               value={discountCode}
               onChange={handleDiscountChange}
+              className='text-black'
             />
 
             <button onClick={handlePlaceOrder}>Place Order</button>

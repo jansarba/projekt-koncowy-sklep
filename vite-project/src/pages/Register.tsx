@@ -24,7 +24,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -42,7 +42,10 @@ const Register = () => {
       await axios.post(`${baseURL}/api/register`, { email, password, name });
       navigate('/login');
     } catch (err) {
-      setError('Error registering user');
+      // Display error message from server or fallback to a generic error
+      setError(
+        err.response?.data?.message || 'Failed to register. Please try again.'
+      );
     }
   };
 
@@ -50,8 +53,12 @@ const Register = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-800">
       <form className="bg-darkes p-6 rounded-md shadow-lg" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-4">Register</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        
+        {error && (
+          <div className="text-red-500 bg-red-100 p-2 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         <div className="mb-4">
           <label className="block mb-2">Name</label>
           <input
@@ -62,7 +69,7 @@ const Register = () => {
             required
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block mb-2">Email</label>
           <input
@@ -73,7 +80,7 @@ const Register = () => {
             required
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block mb-2">Password</label>
           <input
@@ -84,7 +91,7 @@ const Register = () => {
             required
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block mb-2">Confirm Password</label>
           <input
@@ -95,7 +102,7 @@ const Register = () => {
             required
           />
         </div>
-        
+
         <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4">
           Register
         </button>

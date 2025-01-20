@@ -71,13 +71,13 @@ export const Header = () => {
             <>
               <button
                 onClick={() => navigate('/login')}
-                className="bg-blue-500 text-white p-2 rounded"
+                className="bg-secondary text-white p-2 rounded"
               >
                 Login
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="bg-green-500 text-white p-2 rounded"
+                className="bg-tertiary text-white p-2 rounded"
               >
                 Register
               </button>
