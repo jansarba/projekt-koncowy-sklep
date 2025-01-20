@@ -18,7 +18,10 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
 
   useEffect(() => {
     // Check if the browser is Safari and if iOS 17 or later is detected
-    if ((navigator.userAgent.includes("Safari") || navigator.userAgent.includes("Messenger")) && /iPhone|iPad|iPod/.test(navigator.userAgent) && parseInt((navigator as any).appVersion.match(/OS (\d+)_/)[1]) >= 17) {
+    if ((navigator.userAgent.includes("Safari") && /iPhone|iPad|iPod/.test(navigator.userAgent) && parseInt((navigator as any).appVersion.match(/OS (\d+)_/)[1]) >= 17) || navigator.userAgent.includes("Messenger") ||
+    navigator.userAgent.includes("Ios") ||
+    navigator.userAgent.includes("Facebook") ||
+    navigator.userAgent.includes("Meta")) {
       // Set the audio session type to "playback" to prevent muting when the ringer is off
       if ((navigator as any)['audioSession']) {
         (navigator as any)['audioSession'].type = 'playback';
