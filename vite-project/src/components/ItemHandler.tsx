@@ -14,40 +14,60 @@ export const ItemHandler = () => {
     const { filters } = useFilters(); // Access filters from context
     const limit = 12; // Set the limit of items per page
 
+    // Debounce delay (500ms)
+    const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
     // Fetch items for the current page and preload next page
     useEffect(() => {
-        const fetchItems = async () => {
-            console.log("fetching...");
-            console.log(baseURL);
-            try {
-                // Fetch current page's items
-                const response = await fetch(`${baseURL}/api/beats?page=${currentPage}&limit=${limit}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch beats");
-                }
-                const data = await response.json();
-                setItems(data.beats);
-                setTotalPages(data.totalPages); // Set the total number of pages
-                setLoading(false);
-                
-                console.log(currentPage, data.totalPages);
-                // Preload next page if it exists
-                if (currentPage < data.totalPages) {
-                    console.log("Preloading next page...");
-                    const nextPageResponse = await fetch(`${baseURL}/api/beats?page=${currentPage + 1}&limit=${limit}`);
-                    if (nextPageResponse.ok) {
-                        const nextPageData = await nextPageResponse.json();
-                        setNextItems(nextPageData.beats); // Store next page's items
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching items:", error);
-                setLoading(false);
-            }
-        };
+        if (debounceTimer) {
+            clearTimeout(debounceTimer); // Clear the previous timeout if it exists
+        }
 
-        fetchItems();
-    }, [currentPage]); // Re-fetch when the page changes
+        // Set new timeout for fetching data after 500ms
+        const timer = setTimeout(() => {
+            fetchItems();
+        }, 1000);
+        setDebounceTimer(timer);
+
+        // Cleanup the timeout when component unmounts or dependencies change
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [currentPage, filters]); // Re-fetch when page or filters change
+
+    // Function to fetch items
+    const fetchItems = async () => {
+        console.log("fetching...");
+        try {
+            // Send POST request with filters
+            const response = await fetch(`${baseURL}/api/beats`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    page: currentPage,
+                    limit: limit,
+                    title: filters.title,
+                    tags: filters.tags, // Send tags directly as an array
+                    musicalKey: filters.musicalKey,
+                    bpmRange: filters.bpmRange.join(',') // Send as a string, e.g., "60,120"
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch beats");
+            }
+
+            const data = await response.json();
+            setItems(data.data); // Assuming the response has a `data` field with the items
+            setTotalPages(data.totalPages); // Assuming the response includes totalPages field
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching items:", error);
+            setLoading(false);
+        }
+    };
 
     // Function to normalize musical key format (e.g., "A", "Bb", "A#", "C Major", "F Minor")
     const normalizeKey = (key: string) => {
