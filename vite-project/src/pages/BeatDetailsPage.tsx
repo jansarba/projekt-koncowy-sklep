@@ -290,7 +290,7 @@ export const BeatDetailsPage = () => {
               )}
   
       <div className="opinions-section mt-6">
-        <h2>Opinions</h2>
+        <h2>Opinie</h2>
   
         {decodedToken ? (
           <div className="opinion-form mt-4">
@@ -325,7 +325,7 @@ export const BeatDetailsPage = () => {
             </form>
           </div>
         ) : (
-          <p className="mt-4 text-gray-600">You must be logged in to leave an opinion.</p>
+          <p className="mt-4 text-gray-600">Zaloguj się by dodać opinię.</p>
         )}
   
         <div className="opinions-list mt-6">

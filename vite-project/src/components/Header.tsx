@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, CalculatorIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
+import { usePagination } from "../contexts/PaginationContext";
+
 
 export const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { resetToFirstPage } = usePagination();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
@@ -48,7 +53,13 @@ export const Header = () => {
       {/* Title */}
       <h1
         className="font-bold font-sans text-3xl cursor-pointer text-center w-full sm:w-auto"
-        onClick={() => navigate('/')}
+        onClick={() => {
+          if (location.pathname === "/") {
+            resetToFirstPage(); // Only reset if on the home page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          navigate('/'); // Navigate to the home page regardless
+        }}
       >
         gnusny sklep na bity
       </h1>

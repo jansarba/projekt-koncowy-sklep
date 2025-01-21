@@ -1,13 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import { Item, ItemProps } from "./Item";
 import { useFilters } from "../contexts/FiltersContext";
+import { usePagination } from "../contexts/PaginationContext";
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const ItemHandler = () => {
     const [items, setItems] = useState<ItemProps[]>([]);
     const [nextItems, setNextItems] = useState<ItemProps[]>([]); // Store preloaded next page's items
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);  // Track current page
+    const { currentPage, setCurrentPage } = usePagination();
     const [totalPages, setTotalPages] = useState(1);    // Track total pages
     const { filters } = useFilters(); // Access filters from context
     const limit = 12; // Set the limit of items per page
@@ -84,13 +86,22 @@ export const ItemHandler = () => {
 
     // Pagination control functions
     const handlePrevPage = () => {
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
+        if (currentPage > 1) {setCurrentPage(currentPage - 1)
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth", // Adds a smooth scrolling effect
+            });
+        };
     };
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage(currentPage + 1);
             // Swap the current items with the next preloaded items
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth", // Adds a smooth scrolling effect
+            });
             setItems(nextItems);
             setNextItems([]); // Clear next items after swapping
         }

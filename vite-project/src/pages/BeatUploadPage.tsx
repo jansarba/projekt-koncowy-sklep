@@ -157,7 +157,7 @@ const UploadBeat: React.FC = () => {
     if (!isAdmin) {
         return (
             <div className="text-center p-5">
-                <p>You must be an admin to upload beats.</p>
+                <p>404!</p>
             </div>
         );
     }

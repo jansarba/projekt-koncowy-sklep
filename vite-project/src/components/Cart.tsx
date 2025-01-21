@@ -55,7 +55,7 @@ const Cart = () => {
         const token = localStorage.getItem('token');
         if (!token) {
           console.error('No token found');
-          setError('You must be logged in to view your cart');
+          setError('Zaloguj się, by zobaczyć swój koszyk');
           return;
         }
 

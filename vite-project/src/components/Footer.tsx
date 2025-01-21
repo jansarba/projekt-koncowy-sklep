@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
           <img
             src={currentBeatImage}
             alt="Currently playing"
-            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center sm:w-32 sm:h-32 w-14"
+            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center sm:w-28 sm:h-28 w-14"
           />
         )}
         {/* Play/Pause Icon */}

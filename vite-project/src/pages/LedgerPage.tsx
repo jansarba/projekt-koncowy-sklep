@@ -23,7 +23,7 @@ export const LedgerPage = () => {
         const token = localStorage.getItem('token');
 
         if (!token) {
-          setError('You must be logged in to view your orders');
+          setError('Zaloguj się, by zobaczyć historię zamówień.');
           return;
         }
 
