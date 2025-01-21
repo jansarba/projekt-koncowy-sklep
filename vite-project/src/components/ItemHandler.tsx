@@ -139,7 +139,7 @@ export const ItemHandler = () => {
                                 <Item key={item.id} {...item} />
                             ))
                         ) : (
-                            <p>No items match the selected filters.</p>
+                            <p>Nie ma jeszcze takich bitów.</p>
                         )}
                     </div>
 

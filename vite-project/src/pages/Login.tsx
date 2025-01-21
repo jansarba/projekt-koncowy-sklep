@@ -61,7 +61,7 @@ const Login = () => {
             autoComplete='current-password'
           />
         </div>
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4">
+        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4 hover:bg-blue-600 transition">
           Login
         </button>
       </form>

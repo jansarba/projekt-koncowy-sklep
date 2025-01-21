@@ -26,6 +26,7 @@ export const Header = () => {
         // Token is valid
         setIsLoggedIn(true);
         setUserName(decodedToken?.name || 'User');
+        console.log('User:', decodedToken?.name);
         // Check if user is an admin (this will be set from the backend)
         setIsAdmin(decodedToken?.role === 'admin'); // Assuming role is 'admin'
       } else {
@@ -102,7 +103,7 @@ export const Header = () => {
         {isAdmin && (
           <button
             onClick={() => navigate('/upload')}
-            className="p-2 rounded bg-purple-600 text-white flex items-center justify-center group absolute"
+            className="p-2 rounded bg-purple-600 text-white flex items-center justify-center group"
             aria-label="Upload Beat"
           >
             <PlusCircleIcon className="h-6 w-6" />
@@ -130,7 +131,7 @@ export const Header = () => {
           {/* Orders button */}
           <button
             onClick={() => navigate('/ledger')}
-            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group"
+            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group mr-6"
             aria-label="Go to ledger"
           >
             <CalculatorIcon className="h-6 w-6" />

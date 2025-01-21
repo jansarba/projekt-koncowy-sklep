@@ -329,8 +329,8 @@ app.post('/api/beats', async (req, res) => {
         paramIndex++;
       }
       if (musicalKey) {
-          query += ` AND musical_key = $${paramIndex}`;
-          queryParams.push(musicalKey);
+          query += ` AND musical_key ILIKE $${paramIndex}`;
+          queryParams.push(`%${musicalKey}%`);
           paramIndex++;
       }
       if (bpmMin && bpmMax) {
@@ -801,9 +801,11 @@ app.get('/api/orders/:id', authenticateJWT, async (req, res) => {
         beats.bpm,
         beats.musical_key,
         beats.image_url,
-        beats.mp3_url
+        beats.mp3_url,
+        licenses.name AS license_name
       FROM carts
       LEFT JOIN beats ON carts.beat_id = beats.id
+      LEFT JOIN licenses ON carts.license_id = licenses.id
       WHERE carts.order_id = $1;`,
       [orderId]
     );
@@ -811,15 +813,21 @@ app.get('/api/orders/:id', authenticateJWT, async (req, res) => {
     const itemsWithPresignedUrls = itemsResult.rows.map((item) => {
       const imageParams = {
         Bucket: 'beatstore-bucket/images', // Adjust for your S3 structure
-        Key: decodeURIComponent(item.image_url.split('/').pop()),
+        Key: decodeURIComponent(item.image_url?.split('/').pop()),
         Expires: 60 * 60, // 1 hour
       };
 
       const presignedImageUrl = s3.getSignedUrl('getObject', imageParams);
 
       return {
-        ...item,
-        image_url: presignedImageUrl, // Replace image URL with presigned URL
+        cart_id: item.cart_id,
+        beat_id: item.beat_id,
+        title: item.title || 'usunięty!',
+        bpm: item.bpm || '00',
+        musical_key: item.musical_key || 'usunięty!',
+        image_url: presignedImageUrl || '',
+        mp3_url: item.mp3_url || '',
+        license_name: item.license_name || 'usunięty!',
       };
     });
 

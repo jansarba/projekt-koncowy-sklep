@@ -203,42 +203,46 @@ const Cart = () => {
   return (
     <div className="cart-container">
       {error && <p className="error-message">{error}</p>}
-
-      <h1>Your Cart</h1>
-
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
+  
+      {localStorage.getItem('token') && (
         <>
-          <div className="cart-items">
-            {cartItems.map(item => (
-              <CartItem
-                key={item.cart_id}
-                cart_id={item.cart_id}
-                beat_title={item.beat_title}
-                bpm={item.bpm}
-                musical_key={item.musical_key}
-                image_url={item.image_url}
-                license_name={item.license_name}
-                license_price={item.license_price || 0}
-                onRemove={handleRemoveItem}
-              />
-            ))}
-          </div>
-
-          <div className="order-summary">
-            <p>Total: ${totalPrice.toFixed(2)}</p>
-
-            <input
-              type="text"
-              placeholder="Enter discount code"
-              value={discountCode}
-              onChange={handleDiscountChange}
-              className='text-black'
-            />
-
-            <button onClick={handlePlaceOrder}>Place Order</button>
-          </div>
+          <h1>Twój koszyk</h1>
+  
+          {cartItems.length === 0 ? (
+            <p>Twój koszyk jest pusty.</p>
+          ) : (
+            <>
+              <div className="cart-items">
+                {cartItems.map(item => (
+                  <CartItem
+                    key={item.cart_id}
+                    cart_id={item.cart_id}
+                    beat_title={item.beat_title}
+                    bpm={item.bpm}
+                    musical_key={item.musical_key}
+                    image_url={item.image_url}
+                    license_name={item.license_name}
+                    license_price={item.license_price || 0}
+                    onRemove={handleRemoveItem}
+                  />
+                ))}
+              </div>
+  
+              <div className="order-summary">
+                <p>Total: ${totalPrice.toFixed(2)}</p>
+  
+                <input
+                  type="text"
+                  placeholder="Enter discount code"
+                  value={discountCode}
+                  onChange={handleDiscountChange}
+                  className="text-black"
+                />
+  
+                <button onClick={handlePlaceOrder}>Place Order</button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

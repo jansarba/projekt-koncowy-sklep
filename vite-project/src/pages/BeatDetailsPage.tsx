@@ -51,6 +51,7 @@ export const BeatDetailsPage = () => {
         }
   
         setLoading(false);
+        document.title = `${beatData.title}`;
       } catch (error) {
         console.error('Error fetching data:', error);
         setLoading(false);
