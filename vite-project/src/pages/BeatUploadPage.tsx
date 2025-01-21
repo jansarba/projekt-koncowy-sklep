@@ -101,7 +101,7 @@ const UploadBeat: React.FC = () => {
         if (e.target.files) {
             const file = e.target.files[0];
             try {
-                const resizedImage = await resizeImage(file, 1024);
+                const resizedImage = await resizeImage(file, 512);
                 setImageFile(resizedImage);
             } catch (error) {
                 console.error('Error resizing image:', error);

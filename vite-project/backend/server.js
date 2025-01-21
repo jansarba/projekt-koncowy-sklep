@@ -1,7 +1,6 @@
 const express = require('express');
 const multer = require('multer');
 const AWS = require('aws-sdk');
-// const cors = require('cors');
 const { Pool } = require('pg');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -18,23 +17,6 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-
-
-// AWS.config.update({
-//     region: 'eu-north-1',
-// });
-
-// const s3 = new AWS.S3();
-// const pool = new Pool({
-//     user: 'beatstore_mpke_user',
-//     host: 'dpg-cu37agpu0jms73dlu8d0-a.frankfurt-postgres.render.com',
-//     database: 'beatstore_mpke',
-//     password: 'FYGYF6TlFeeks8cUEgiHlv9Et6HdSrRD',
-//     port: 5432,
-//     ssl: {
-//         rejectUnauthorized: false,
-//     },
-// });
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -62,25 +44,19 @@ const app = express();
 
 app.use(cors(corsOptions));
 
-// Enable compression
 app.use(compression());
 
-// Your other middlewares and routes here
-app.use(express.static('dist')); // Vite's static files
+app.use(express.static('dist'));
 
 
 const baseURL = process.env.VITE_API_BASE_URL;
-// Middleware
-// app.use(cors());
-// app.use(cors());
+
 app.use(express.json());
 
-// Setup Multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Secret key for JWT signing
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 
 const authenticateJWT = async (req, res, next) => {
