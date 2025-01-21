@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const UploadBeat: React.FC = () => {
@@ -28,7 +28,6 @@ const UploadBeat: React.FC = () => {
             }
         }
 
-        // Fetch tags and authors
         const fetchData = async () => {
             try {
                 const tagsResponse = await fetch(`${baseURL}/api/tags`);
@@ -268,7 +267,6 @@ const UploadBeat: React.FC = () => {
                     </div>
                 </form>
 
-                {/* Display Tags and Authors as Plain Text */}
                 <div className="mt-8">
                     <h3 className="text-xl font-semibold">Tagi dotychczas (jesli wpiszesz inny to automatycznie sie doda + wielkosc liter nie ma znaczenia jak sobie filtruja):</h3>
                     <ul className="list-disc pl-5">
