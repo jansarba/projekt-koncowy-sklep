@@ -60,7 +60,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 
 const authenticateJWT = async (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1]; // Get the token
+  const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ error: 'No token provided' });
@@ -72,7 +72,6 @@ const authenticateJWT = async (req, res, next) => {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
 
-    // Fetch roles from the user_roles table
     try {
       const client = await pool.connect();
       const query = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1';
