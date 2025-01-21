@@ -19,7 +19,7 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-32 z-10 justify-center items-center">
+    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-24 sm:h-32 z-10 justify-center items-center">
       <div className="relative mr-4 aspect-square bg-darkest p-2 group flex justify-center items-center sm:w-32 sm:h-32 w-16 h-16">
         {currentBeatImage && (
           <img

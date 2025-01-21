@@ -49,10 +49,10 @@ export const Header = () => {
   };
 
   return (
-    <div className="bg-darkest text-text p-6 sticky top-0 w-full z-10 flex flex-wrap justify-between items-center gap-4">
+    <div className="bg-darkest text-text p-4 sm:p-6 sticky top-0 w-full z-10 flex flex-wrap justify-between items-center gap-4">
       {/* Title */}
       <h1
-        className="font-bold font-sans text-3xl cursor-pointer text-center w-full sm:w-auto"
+        className="font-bold font-sans sm:text-3xl text-2xl cursor-pointer text-center w-full sm:w-auto"
         onClick={() => {
           if (location.pathname === "/") {
             resetToFirstPage(); // Only reset if on the home page
@@ -65,9 +65,9 @@ export const Header = () => {
       </h1>
 
       {/* Buttons container */}
-      <div className="flex flex-wrap justify-center items-center gap-4 w-full sm:w-auto">
+      <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto sm:justify-between justify-around">
         {/* Login/Register or User Info */}
-        <div className="flex gap-4 justify-center items-center">
+        <div className="flex gap-4 justify-center items-center flex-row-reverse sm:flex-row">
           {isLoggedIn ? (
             <>
               <span className="mr-4">{userName}</span>
@@ -95,12 +95,14 @@ export const Header = () => {
             </>
           )}
         </div>
+        <div></div>
+        <div></div>
 
         {/* Admin-specific Upload Beat button */}
         {isAdmin && (
           <button
             onClick={() => navigate('/upload')}
-            className="p-2 rounded bg-purple-600 text-white flex items-center justify-center group"
+            className="p-2 rounded bg-purple-600 text-white flex items-center justify-center group absolute"
             aria-label="Upload Beat"
           >
             <PlusCircleIcon className="h-6 w-6" />
