@@ -14,6 +14,7 @@ const UploadBeat: React.FC = () => {
     const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
     const [sample, setSample] = useState('');
     const [ismp3only, setIsMp3only] = useState(false);
+    const [zipFile, setZipFile] = useState<File | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -133,6 +134,10 @@ const UploadBeat: React.FC = () => {
         formData.append('authors', formattedAuthors.join(','));
         formData.append('sample', sample);
         formData.append('ismp3only', ismp3only.toString());
+        if (zipFile) {
+            formData.append('zip', zipFile);
+        }
+        
 
         try {
             const response = await fetch(`${baseURL}/api/upload-beat`, {
@@ -141,7 +146,6 @@ const UploadBeat: React.FC = () => {
             });
 
             if (response.ok) {
-                console.log(sample)
                 alert('Beat uploaded successfully');
             } else {
                 const errorText = await response.text();
@@ -254,6 +258,16 @@ const UploadBeat: React.FC = () => {
                             id="ismp3only"
                             checked={ismp3only}
                             onChange={(e) => setIsMp3only(e.target.checked)}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="zip" className="block text-black">Upload Zip:</label>
+                        <input
+                            type="file"
+                            id="zip"
+                            accept=".zip"
+                            onChange={(e) => setZipFile(e.target.files ? e.target.files[0] : null)}
+                            className="w-full p-3 border border-gray-300 rounded-md"
                         />
                     </div>
                     <div className="flex justify-center mt-6">

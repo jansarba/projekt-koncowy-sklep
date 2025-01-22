@@ -20,13 +20,11 @@ export const Header = () => {
       // Decode the JWT
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-      console.log('Decoded token:', decodedToken);
 
       if (decodedToken.exp && decodedToken.exp > currentTime) {
         // Token is valid
         setIsLoggedIn(true);
         setUserName(decodedToken?.name || 'User');
-        console.log('User:', decodedToken?.name);
         // Check if user is an admin (this will be set from the backend)
         setIsAdmin(decodedToken?.role === 'admin'); // Assuming role is 'admin'
       } else {
@@ -131,7 +129,7 @@ export const Header = () => {
           {/* Orders button */}
           <button
             onClick={() => navigate('/ledger')}
-            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group mr-6"
+            className="p-2 rounded bg-gray-800 text-white flex items-center justify-center relative group sm:mr-6"
             aria-label="Go to ledger"
           >
             <CalculatorIcon className="h-6 w-6" />

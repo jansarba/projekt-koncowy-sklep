@@ -38,7 +38,6 @@ export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
           if (beatResponse.ok) {
             const beatData = await beatResponse.json();
             setIsMp3Only(beatData.ismp3only); // Update ismp3only based on the beat data
-            console.log('isMp3Only:', beatData.ismp3only);
           }
         } else {
           console.error('Failed to fetch licenses');

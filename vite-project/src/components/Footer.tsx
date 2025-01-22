@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import WaveformOverlay from './WaveformOverlay';
 import ScrollingText from './ScrollingText';
@@ -15,7 +14,7 @@ export const Footer: React.FC = () => {
   } = useMusicPlayer();
 
   const handlePlayPause = () => {
-    setIsPlaying((prev) => !prev); // Toggle play/pause state
+    setIsPlaying((prev) => !prev);
   };
 
   return (

@@ -37,7 +37,7 @@ export const ItemHandler = () => {
 
     // Function to fetch items
     const fetchItems = async () => {
-        console.log("fetching...");
+        ("fetching...");
         try {
             // Send POST request with filters
             const response = await fetch(`${baseURL}/api/beats`, {

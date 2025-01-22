@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ScrollingTextProps {
@@ -19,8 +19,6 @@ const ScrollingText: React.FC<ScrollingTextProps> = ({ width, text, beatId }) =>
     // Average width of a single character in pixels (adjust if needed)
     const avgCharWidth = 8; // Approximation based on font size and style
     const textWidth = text.length * avgCharWidth;
-    console.log(textWidth, width);
-
     // Determine if scrolling is needed
     setShouldScroll(textWidth > width);
   }, [text, width]);
