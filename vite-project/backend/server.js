@@ -195,10 +195,10 @@ app.post('/api/login', async (req, res) => {
 // Route to upload beat
 app.post(
   '/api/upload-beat',
-  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]),
+  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }, { name: 'zip', maxCount: 1 }]),
   async (req, res) => {
     const { title, bpm, musical_key, tags, authors, sample, ismp3only } = req.body; // 'authors' is a comma-separated string of author names
-    const { image, mp3 } = req.files;
+    const { image, mp3, zip } = req.files;
 
     if (!title || !bpm || !musical_key || !tags || !authors || !image || !mp3) {
       return res.status(400).json({ error: 'Missing fields or files' });
@@ -210,6 +210,7 @@ app.post(
       // Upload files to S3, replace spaces and parentheses in filenames
       const imageFileName = image[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
       const mp3FileName = mp3[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
+      const zipFileName = zip ? zip[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-') : null;
 
       const imageParams = {
         Bucket: 'beatstore-bucket/images',
@@ -223,10 +224,17 @@ app.post(
         Body: mp3[0].buffer,
         ContentType: mp3[0].mimetype,
       };
+      const zipParams = zip ? {
+        Bucket: 'beatstore-bucket/files',
+        Key: `${Date.now()}-${zipFileName}`,
+        Body: zip[0].buffer,
+        ContentType: zip[0].mimetype,
+      } : null;
 
-      const [imageUploadResult, mp3UploadResult] = await Promise.all([
+      const [imageUploadResult, mp3UploadResult, zipUploadResult] = await Promise.all([
         s3.upload(imageParams).promise(),
         s3.upload(mp3Params).promise(),
+        zipParams ? s3.upload(zipParams).promise() : Promise.resolve(null),
       ]);
 
       // Insert beat
@@ -264,6 +272,14 @@ app.post(
         await client.query(
           `INSERT INTO beat_author (beat_id, author_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
           [beatId, authorId]
+        );
+      }
+
+      // If there's a zip file, insert it into the files table
+      if (zipUploadResult) {
+        await client.query(
+          `INSERT INTO files (beat_id, file_url) VALUES ($1, $2)`,
+          [beatId, zipUploadResult.Location]
         );
       }
 
@@ -845,6 +861,45 @@ const sendFilesToBuyer = (orderId) => {
   // Trigger file sending process (e.g., email with download links)
   console.log(`Sending files for order ID ${orderId}`);
 };
+
+app.post('/api/get-download-link', async (req, res) => {
+  const { beat_id } = req.body;
+
+  if (!beat_id) {
+    return res.status(400).json({ error: 'beat_id is required' });
+  }
+
+  try {
+    // Retrieve file_url from the database
+    const result = await pool.query(
+      'SELECT file_url FROM files WHERE beat_id = $1',
+      [beat_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const fileUrl = result.rows[0].file_url;
+
+    // Extract the S3 key from the URL
+    const fileKey = decodeURIComponent(fileUrl.split('/').pop());
+
+    // Generate a signed URL for the file
+    const params = {
+      Bucket: 'beatstore-bucket/files', // Your bucket and directory for mp3 files
+      Key: fileKey,
+      Expires: 60 * 60, // 1 hour expiration
+    };
+
+    const signedUrl = s3.getSignedUrl('getObject', params);
+
+    res.json({ signedUrl });
+  } catch (error) {
+    console.error('Error retrieving download link:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.post('/api/orders/:id/send-files', authenticateJWT, async (req, res) => {
   const orderId = req.params.id;
