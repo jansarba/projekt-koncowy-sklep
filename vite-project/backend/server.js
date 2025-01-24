@@ -172,9 +172,6 @@ app.post('/api/login', async (req, res) => {
 
     const user = result.rows[0];
 
-    // Log to ensure the user data and role are retrieved
-    console.log('Fetched user:', user);
-
     // Compare hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -298,8 +295,6 @@ app.post('/api/beats', async (req, res) => {
       const { page, limit, title, tags, musicalKey, bpmRange } = req.body;
       const client = await pool.connect();
 
-      console.log('Received parameters:', { page, limit, title, tags, musicalKey, bpmRange });
-
       // Parse bpmRange into min and max
       const [bpmMin, bpmMax] = bpmRange ? bpmRange.split(',').map(Number) : [null, null];
 
@@ -339,9 +334,6 @@ app.post('/api/beats', async (req, res) => {
       // Append limit and offset for pagination
       query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
       queryParams.push(limit || 12, (page - 1) * (limit || 12));
-
-      console.log('Final query:', query);
-      console.log('Query parameters:', queryParams);
 
       const result = await client.query(query, queryParams);
 
@@ -609,7 +601,6 @@ app.post('/api/carts', authenticateJWT, async (req, res) => {
 
       // If the item is already in the cart, return a conflict response
       if (existing.rows.length > 0) {
-          console.log(existing.rows);
           return res.status(409).json({ message: 'This item is already in your cart' });
       }
 

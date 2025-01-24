@@ -99,8 +99,6 @@ export const BeatDetailsPage = () => {
         throw new Error("Failed to fetch opinions");
       }
       const data = await response.json();
-      console.log("Opinions fetched:", data); // Log the data here
-      console.log("First opinion createdAt:", data[0]?.created_at); // Log the date of the first opinion
       setOpinions(data);
     } catch (error) {
       console.error("Error fetching opinions:", error);

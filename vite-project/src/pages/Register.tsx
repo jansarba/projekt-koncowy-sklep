@@ -7,12 +7,10 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const Register = () => {
   const { setSidebarVisible } = useSidebar();
 
-  // Hide Sidebar for this page
   useEffect(() => {
     setSidebarVisible(false);
 
     return () => {
-      // Optionally restore Sidebar visibility on unmount
       setSidebarVisible(true);
     };
   }, [setSidebarVisible]);
@@ -20,7 +18,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState(''); // Added name field
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -43,7 +41,7 @@ const Register = () => {
       navigate('/login');
     } catch (err) {
       // Display error message from server or fallback to a generic error
-      console.log('Registration error:', err);
+      console.log(err)
       setError(
         'Failed to register. Please try again.'
       );
@@ -51,7 +49,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center pb-36">
       <form className="bg-darkest p-6 rounded-md shadow-lg" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-4">Register</h2>
         {error && (

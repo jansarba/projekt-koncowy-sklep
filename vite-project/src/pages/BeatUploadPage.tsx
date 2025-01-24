@@ -146,7 +146,6 @@ const UploadBeat: React.FC = () => {
             });
 
             if (response.ok) {
-                console.log(sample)
                 alert('Beat uploaded successfully');
             } else {
                 const errorText = await response.text();

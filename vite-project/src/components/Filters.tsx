@@ -47,7 +47,6 @@ export const Filters: React.FC = () => {
     const fetchTags = async () => {
       try {
         const response = await axios.get(`${baseURL}/api/tags`);
-        console.log('Tags from API:', response.data);
   
         // Normalize tags to lowercase and remove duplicates
         const normalizedTags = response.data

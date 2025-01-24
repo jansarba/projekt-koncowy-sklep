@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 
 interface WaveformOverlayProps {
@@ -51,7 +51,7 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
       wavesurferRef.current.load(audioUrl);
 
       wavesurferRef.current.on('ready', () => {
-        console.log('Waveform is ready');
+        ('Waveform is ready');
         setIsLoaded(true);
         if (isPlaying) {
 
