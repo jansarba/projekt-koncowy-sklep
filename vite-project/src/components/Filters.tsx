@@ -137,13 +137,13 @@ export const Filters: React.FC = () => {
             onClick={handleResetFilters}
             className="px-2 py-2 bg-darkes hover:text-texthover transition-colors text-text rounded-md"
             >
-            Reset Filters
+            Resetuj
             </button>
         </div>
 
         {/* Filter by Title */}
         <div className="mb-4">
-          <label className="block mb-2">Search by Title</label>
+          <label className="block mb-2">Szukaj po tytule</label>
           <input
             type="text"
             value={filters.title}

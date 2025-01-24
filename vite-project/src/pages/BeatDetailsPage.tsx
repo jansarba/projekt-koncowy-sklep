@@ -6,23 +6,21 @@ import { Licenses, License } from '../components/Licenses';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const BeatDetailsPage = () => {
-  const { id } = useParams(); // Get the beat ID from the URL parameters
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const [beatDetails, setBeatDetails] = useState<any>(null); // State for beat details
+  const [beatDetails, setBeatDetails] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [loading, setLoading] = useState(true); // Loading state
-  const [isPlaying, setIsPlaying] = useState(false); // Local play/pause state
-  const [, setCurrentTime] = useState(0); // State for tracking current playback time
-  const [selectedLicense, setSelectedLicense] = useState<License | null>(null); // State for selected license
-  // const [userRole, setUserRole] = useState<string | null>(null); // State for user role
-  const [decodedToken, setDecodedToken] = useState<any>(null); // State for decoded JWT token
-  const [opinions, setOpinions] = useState<any[]>([]); // State for opinions
-  const [opinionText, setOpinionText] = useState(""); // State for opinion text
-  const [authorName, setAuthorName] = useState(""); // State for optional author name
+  const [loading, setLoading] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [, setCurrentTime] = useState(0); 
+  const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
+  const [decodedToken, setDecodedToken] = useState<any>(null); 
+  const [opinions, setOpinions] = useState<any[]>([]); 
+  const [opinionText, setOpinionText] = useState("");
+  const [authorName, setAuthorName] = useState(""); 
 
   useEffect(() => {
-    // Scroll to the top of the page upon component load
     window.scrollTo(0, 0);
   }, []);
 
@@ -202,7 +200,7 @@ export const BeatDetailsPage = () => {
     <div className="relative group">
       <div className="text-secondary hover:text-red-500 cursor-pointer ml-1">*</div>
       <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-black text-secondary text-xs p-2 rounded shadow-lg w-64">
-        Ten bit jest samplowany! Flipujemy porządnie, niszowo, i nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt
+        Ten bit jest samplowany! Nigdy nie mieliśmy żadnych problemów z prawami autorskimi, ale zawsze istnieje ten 0,1% szans, że coś się wysypie. W przypadku strajka - prosimy o kontakt
       </div>
     </div>
   )}          </div>
@@ -295,7 +293,7 @@ export const BeatDetailsPage = () => {
           <div className="opinion-form mt-4">
             <form onSubmit={handleOpinionSubmit}>
               <div>
-                <label htmlFor="authorName">Your Name (optional):</label>
+                <label htmlFor="authorName">Imię (opcjonalne):</label>
                 <input
                   id="authorName"
                   type="text"
@@ -306,7 +304,7 @@ export const BeatDetailsPage = () => {
                 />
               </div>
               <div>
-                <label htmlFor="opinionText">Your Opinion:</label>
+                <label htmlFor="opinionText">Twoja opinia:</label>
                 <textarea
                   id="opinionText"
                   value={opinionText}
@@ -318,7 +316,7 @@ export const BeatDetailsPage = () => {
               </div>
               <div>
                 <button type="submit" className="mt-4 p-2 bg-tertiary text-white rounded">
-                  Submit Opinion
+                  Dodaj opinię
                 </button>
               </div>
             </form>
@@ -357,7 +355,7 @@ export const BeatDetailsPage = () => {
                       className="text-red-500 mt-2"
                       onClick={() => handleDeleteOpinion(opinion.id)}
                     >
-                      Delete
+                      Usuń
                     </button>
                   )}
                 </div>
