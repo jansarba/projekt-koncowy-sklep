@@ -17,7 +17,7 @@ Na chwilę obecną, hostingi z jakich osobiście korzystam, to darmowe wersje:
  - [AWS S3](https://aws.amazon.com/s3/) (bucket),
  - [Render](https://render.com/) (baza danych, backend, domena).
 
-Funkcjonalności znaleźć można w [wymaganiach](Projekt.pdf). Mój projekt spełnia wszystkie
+Funkcjonalności znaleźć można w [wymaganiach](Projekt.pdf). Mój projekt spełnia wszystkie.
 
 ## Setup
 
