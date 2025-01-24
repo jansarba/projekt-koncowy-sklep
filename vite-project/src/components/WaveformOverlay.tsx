@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 
 interface WaveformOverlayProps {
@@ -18,7 +18,10 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
 
   useEffect(() => {
     // Check if the browser is Safari and if iOS 17 or later is detected
-    if (navigator.userAgent.includes("Safari") && /iPhone|iPad|iPod/.test(navigator.userAgent) && parseInt((navigator as any).appVersion.match(/OS (\d+)_/)[1]) >= 17) {
+    if ((navigator.userAgent.includes("Safari") && /iPhone|iPad|iPod/.test(navigator.userAgent) && parseInt((navigator as any).appVersion.match(/OS (\d+)_/)[1]) >= 17) || navigator.userAgent.includes("Messenger") ||
+    navigator.userAgent.includes("Ios") ||
+    navigator.userAgent.includes("Facebook") ||
+    navigator.userAgent.includes("Meta")) {
       // Set the audio session type to "playback" to prevent muting when the ringer is off
       if ((navigator as any)['audioSession']) {
         (navigator as any)['audioSession'].type = 'playback';
@@ -37,7 +40,7 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
         barWidth: 0,
         hideScrollbar: true,
         height: 75,
-        backend: 'WebAudio',
+        backend: 'MediaElement',
         fetchParams: {
           cache: 'default', // Default cache behavior
           mode: 'cors', // CORS mode for cross-origin requests
@@ -48,9 +51,10 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
       wavesurferRef.current.load(audioUrl);
 
       wavesurferRef.current.on('ready', () => {
-        console.log('Waveform is ready');
+        ('Waveform is ready');
         setIsLoaded(true);
         if (isPlaying) {
+
           wavesurferRef.current?.play();
         }
       });

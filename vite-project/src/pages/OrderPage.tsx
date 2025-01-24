@@ -121,6 +121,7 @@ const OrderDetails = () => {
                   />
                   <div className="item-info flex-grow">
                     <h3 className="font-semibold text-lg">{item.title}</h3>
+                    <p className="text-sm">{item.license_name}</p>
                     <p className="text-sm">
                       {item.bpm} BPM | {item.musical_key}
                     </p>
@@ -144,6 +145,8 @@ const OrderDetails = () => {
               </button>
             </div>
           )}
+          <div className='pb-48'>
+          </div>
         </>
       ) : (
         <p>Loading order details...</p>

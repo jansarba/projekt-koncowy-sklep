@@ -1,7 +1,6 @@
 const express = require('express');
 const multer = require('multer');
 const AWS = require('aws-sdk');
-// const cors = require('cors');
 const { Pool } = require('pg');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -18,23 +17,6 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-
-
-// AWS.config.update({
-//     region: 'eu-north-1',
-// });
-
-// const s3 = new AWS.S3();
-// const pool = new Pool({
-//     user: 'beatstore_mpke_user',
-//     host: 'dpg-cu37agpu0jms73dlu8d0-a.frankfurt-postgres.render.com',
-//     database: 'beatstore_mpke',
-//     password: 'FYGYF6TlFeeks8cUEgiHlv9Et6HdSrRD',
-//     port: 5432,
-//     ssl: {
-//         rejectUnauthorized: false,
-//     },
-// });
 
 AWS.config.update({
   region: process.env.AWS_REGION,
@@ -62,29 +44,23 @@ const app = express();
 
 app.use(cors(corsOptions));
 
-// Enable compression
 app.use(compression());
 
-// Your other middlewares and routes here
-app.use(express.static('dist')); // Vite's static files
+app.use(express.static('dist'));
 
 
 const baseURL = process.env.VITE_API_BASE_URL;
-// Middleware
-// app.use(cors());
-// app.use(cors());
+
 app.use(express.json());
 
-// Setup Multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Secret key for JWT signing
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 
 const authenticateJWT = async (req, res, next) => {
-  const token = req.header('Authorization')?.split(' ')[1]; // Get the token
+  const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ error: 'No token provided' });
@@ -96,7 +72,6 @@ const authenticateJWT = async (req, res, next) => {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
 
-    // Fetch roles from the user_roles table
     try {
       const client = await pool.connect();
       const query = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1';
@@ -197,9 +172,6 @@ app.post('/api/login', async (req, res) => {
 
     const user = result.rows[0];
 
-    // Log to ensure the user data and role are retrieved
-    console.log('Fetched user:', user);
-
     // Compare hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -220,10 +192,10 @@ app.post('/api/login', async (req, res) => {
 // Route to upload beat
 app.post(
   '/api/upload-beat',
-  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }]),
+  upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }, { name: 'zip', maxCount: 1 }]),
   async (req, res) => {
-    const { title, bpm, musical_key, tags, authors } = req.body; // 'authors' is a comma-separated string of author names
-    const { image, mp3 } = req.files;
+    const { title, bpm, musical_key, tags, authors, sample, ismp3only } = req.body; // 'authors' is a comma-separated string of author names
+    const { image, mp3, zip } = req.files;
 
     if (!title || !bpm || !musical_key || !tags || !authors || !image || !mp3) {
       return res.status(400).json({ error: 'Missing fields or files' });
@@ -232,9 +204,10 @@ app.post(
     try {
       const client = await pool.connect();
 
-      // Upload files to S3
-      const imageFileName = image[0].originalname.replace(/\s+/g, '_');
-      const mp3FileName = mp3[0].originalname.replace(/\s+/g, '_');
+      // Upload files to S3, replace spaces and parentheses in filenames
+      const imageFileName = image[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
+      const mp3FileName = mp3[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-');
+      const zipFileName = zip ? zip[0].originalname.replace(/\s+/g, '_').replace(/[()]/g, '-') : null;
 
       const imageParams = {
         Bucket: 'beatstore-bucket/images',
@@ -248,18 +221,25 @@ app.post(
         Body: mp3[0].buffer,
         ContentType: mp3[0].mimetype,
       };
+      const zipParams = zip ? {
+        Bucket: 'beatstore-bucket/files',
+        Key: `${Date.now()}-${zipFileName}`,
+        Body: zip[0].buffer,
+        ContentType: zip[0].mimetype,
+      } : null;
 
-      const [imageUploadResult, mp3UploadResult] = await Promise.all([
+      const [imageUploadResult, mp3UploadResult, zipUploadResult] = await Promise.all([
         s3.upload(imageParams).promise(),
         s3.upload(mp3Params).promise(),
+        zipParams ? s3.upload(zipParams).promise() : Promise.resolve(null),
       ]);
 
       // Insert beat
       const formattedTags = `{${tags.split(',').map((tag) => tag.trim()).join(',')}}`;
       const beatResult = await client.query(
-        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location]
+        `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url, sample, ismp3only)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location, sample, ismp3only]
       );
       const beatId = beatResult.rows[0].id;
 
@@ -292,6 +272,14 @@ app.post(
         );
       }
 
+      // If there's a zip file, insert it into the files table
+      if (zipUploadResult) {
+        await client.query(
+          `INSERT INTO files (beat_id, file_url) VALUES ($1, $2)`,
+          [beatId, zipUploadResult.Location]
+        );
+      }
+
       client.release();
       res.status(200).json({ message: 'Beat uploaded successfully', beatId });
     } catch (error) {
@@ -301,43 +289,89 @@ app.post(
   }
 );
 // Route to fetch all beats and generate presigned URLs using Signature v4
-app.get('/api/beats', async (req, res) => {
+
+app.post('/api/beats', async (req, res) => {
   try {
+      const { page, limit, title, tags, musicalKey, bpmRange } = req.body;
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM beats');
-      client.release();
 
-      // Generate presigned URLs for each beat using Signature v4
+      // Parse bpmRange into min and max
+      const [bpmMin, bpmMax] = bpmRange ? bpmRange.split(',').map(Number) : [null, null];
+
+      // Build query dynamically
+      let query = 'SELECT * FROM beats WHERE true';
+      const queryParams = [];
+
+      let paramIndex = 1; // Start index for parameters
+
+      if (title) {
+          query += ` AND title ILIKE $${paramIndex}`;
+          queryParams.push(`%${title}%`);
+          paramIndex++;
+      }
+      if (tags && Array.isArray(tags) && tags.length > 0 && tags[0] !== '') {
+        query += ` AND tags @> $${paramIndex}::text[]`;
+        queryParams.push(tags); // `tags` is expected to be an array like ['vkie', 'mata']
+        paramIndex++;
+      }
+      if (musicalKey) {
+          query += ` AND musical_key ILIKE $${paramIndex}`;
+          queryParams.push(`%${musicalKey}%`);
+          paramIndex++;
+      }
+      if (bpmMin && bpmMax) {
+          query += ` AND bpm BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
+          queryParams.push(bpmMin, bpmMax);
+          paramIndex += 2;
+      }
+
+      // Get the total number of records for pagination
+      const countQuery = query.replace('SELECT *', 'SELECT COUNT(*) AS total_count');
+      const countResult = await client.query(countQuery, queryParams);
+      const totalCount = countResult.rows[0].total_count;
+      const totalPages = Math.ceil(totalCount / (limit || 12));
+
+      // Append limit and offset for pagination
+      query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      queryParams.push(limit || 12, (page - 1) * (limit || 12));
+
+      const result = await client.query(query, queryParams);
+
       const beatsWithPresignedUrls = await Promise.all(
-          result.rows.map(async (beat) => {
-              const mp3Params = {
-                  Bucket: 'beatstore-bucket/mp3',  // Correct bucket name
-                  Key: encodeURIComponent(beat.mp3_url.split('/').pop()),
-                  Expires: 60 * 60, // URL expires in 1 hour
-              };
+        result.rows.map(async (beat) => {
+          const mp3Params = {
+            Bucket: 'beatstore-bucket/mp3', // Correct bucket name
+            Key: encodeURIComponent(beat.mp3_url.split('/').pop()),
+            Expires: 60 * 60, // URL expires in 1 hour
+          };
 
-              const imageParams = {
-                  Bucket: 'beatstore-bucket/images',  // Correct bucket name
-                  Key: encodeURIComponent(beat.image_url.split('/').pop()),
-                  Expires: 60 * 60, // URL expires in 1 hour
-              };
+          const imageParams = {
+            Bucket: 'beatstore-bucket/images', // Correct bucket name
+            Key: encodeURIComponent(beat.image_url.split('/').pop()),
+            Expires: 60 * 60, // URL expires in 1 hour
+          };
 
-              // Get presigned URLs for both MP3 and Image using Signature V4
-              const mp3Url = s3.getSignedUrl('getObject', mp3Params);
-              const imageUrl = s3.getSignedUrl('getObject', imageParams);
+          // Get presigned URLs for both MP3 and Image using Signature V4
+          const mp3Url = s3.getSignedUrl('getObject', mp3Params);
+          const imageUrl = s3.getSignedUrl('getObject', imageParams);
 
-              return {
-                  ...beat,
-                  mp3_url: mp3Url,
-                  image_url: imageUrl,
-              };
-          })
+          return {
+            ...beat,
+            mp3_url: mp3Url,
+            image_url: imageUrl,
+          };
+        })
       );
 
-      res.status(200).json(beatsWithPresignedUrls);
+      res.json({
+        data: beatsWithPresignedUrls,
+        totalPages,
+        currentPage: page,
+        totalCount,
+      });
   } catch (error) {
-      console.error('Error fetching beats:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching beats with filters:', error.message);
+      res.status(500).json({ error: 'An error occurred while fetching beats.' });
   }
 });
 
@@ -403,6 +437,8 @@ app.get('/api/beats/:id', async (req, res) => {
           mp3_url: mp3Url,
           image_url: imageUrl,
           authors: beat.authors, // List of authors
+          sample: beat.sample,
+          ismp3only: beat.ismp3only,
       });
   } catch (error) {
       console.error('Error fetching beat:', error);
@@ -505,11 +541,47 @@ app.get('/api/authors', async (req, res) => {
 
 app.get('/api/licenses', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM licenses');
-    res.status(200).json(result.rows);
+    // Retrieve the beatId from query parameters
+    const { beatId } = req.query;
+
+    if (!beatId) {
+      let query = 'SELECT * FROM licenses';
+      const result = await pool.query
+      (query);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'No licenses found' });
+      }
+      return res.status(200).json(result.rows);
+    }
+
+    // Fetch the 'ismp3only' field from the beats table
+    const beatResult = await pool.query('SELECT ismp3only FROM beats WHERE id = $1', [beatId]);
+    if (beatResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Beat not found' });
+    }
+
+    const isMp3Only = beatResult.rows[0].ismp3only;
+
+    // Query to fetch the licenses
+    let query = 'SELECT * FROM licenses';
+    let params = [];
+
+    if (isMp3Only) {
+      // Filter licenses if ismp3only is true
+      query += " WHERE name = 'mp3'"; // Adjust the name if needed
+    }
+
+    // Fetch the licenses from the database
+    const licensesResult = await pool.query(query, params);
+    
+    if (licensesResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No licenses found' });
+    }
+
+    res.status(200).json(licensesResult.rows);
   } catch (err) {
     console.error('Error fetching licenses:', err);
-    res.status(500).json({ error: 'Failed to fetch licenses' });
+    res.status(500).json({ error: 'Failed to fetch licenses', details: err.message });
   }
 });
 
@@ -529,7 +601,6 @@ app.post('/api/carts', authenticateJWT, async (req, res) => {
 
       // If the item is already in the cart, return a conflict response
       if (existing.rows.length > 0) {
-          console.log(existing.rows);
           return res.status(409).json({ message: 'This item is already in your cart' });
       }
 
@@ -712,9 +783,11 @@ app.get('/api/orders/:id', authenticateJWT, async (req, res) => {
         beats.bpm,
         beats.musical_key,
         beats.image_url,
-        beats.mp3_url
+        beats.mp3_url,
+        licenses.name AS license_name
       FROM carts
       LEFT JOIN beats ON carts.beat_id = beats.id
+      LEFT JOIN licenses ON carts.license_id = licenses.id
       WHERE carts.order_id = $1;`,
       [orderId]
     );
@@ -722,15 +795,21 @@ app.get('/api/orders/:id', authenticateJWT, async (req, res) => {
     const itemsWithPresignedUrls = itemsResult.rows.map((item) => {
       const imageParams = {
         Bucket: 'beatstore-bucket/images', // Adjust for your S3 structure
-        Key: decodeURIComponent(item.image_url.split('/').pop()),
+        Key: decodeURIComponent(item.image_url?.split('/').pop()),
         Expires: 60 * 60, // 1 hour
       };
 
       const presignedImageUrl = s3.getSignedUrl('getObject', imageParams);
 
       return {
-        ...item,
-        image_url: presignedImageUrl, // Replace image URL with presigned URL
+        cart_id: item.cart_id,
+        beat_id: item.beat_id,
+        title: item.title || 'usunięty!',
+        bpm: item.bpm || '00',
+        musical_key: item.musical_key || 'usunięty!',
+        image_url: presignedImageUrl || '',
+        mp3_url: item.mp3_url || '',
+        license_name: item.license_name || 'usunięty!',
       };
     });
 
@@ -773,6 +852,45 @@ const sendFilesToBuyer = (orderId) => {
   // Trigger file sending process (e.g., email with download links)
   console.log(`Sending files for order ID ${orderId}`);
 };
+
+app.post('/api/get-download-link', async (req, res) => {
+  const { beat_id } = req.body;
+
+  if (!beat_id) {
+    return res.status(400).json({ error: 'beat_id is required' });
+  }
+
+  try {
+    // Retrieve file_url from the database
+    const result = await pool.query(
+      'SELECT file_url FROM files WHERE beat_id = $1',
+      [beat_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    const fileUrl = result.rows[0].file_url;
+
+    // Extract the S3 key from the URL
+    const fileKey = decodeURIComponent(fileUrl.split('/').pop());
+
+    // Generate a signed URL for the file
+    const params = {
+      Bucket: 'beatstore-bucket/files', // Your bucket and directory for mp3 files
+      Key: fileKey,
+      Expires: 60 * 60, // 1 hour expiration
+    };
+
+    const signedUrl = s3.getSignedUrl('getObject', params);
+
+    res.json({ signedUrl });
+  } catch (error) {
+    console.error('Error retrieving download link:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.post('/api/orders/:id/send-files', authenticateJWT, async (req, res) => {
   const orderId = req.params.id;

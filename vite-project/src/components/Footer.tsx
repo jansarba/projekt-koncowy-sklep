@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 import WaveformOverlay from './WaveformOverlay';
 import ScrollingText from './ScrollingText';
@@ -15,17 +14,17 @@ export const Footer: React.FC = () => {
   } = useMusicPlayer();
 
   const handlePlayPause = () => {
-    setIsPlaying((prev) => !prev); // Toggle play/pause state
+    setIsPlaying((prev) => !prev);
   };
 
   return (
-    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-32 z-10 justify-center">
-      <div className="relative mr-4 aspect-square bg-darkest p-2 group flex justify-center items-center">
+    <div className="bg-darkes text-slate-100 fixed bottom-0 w-full p-2 flex h-24 sm:h-32 z-10 justify-center items-center">
+      <div className="relative mr-4 aspect-square bg-darkest p-2 group flex justify-center items-center sm:w-32 sm:h-32 w-16 h-16">
         {currentBeatImage && (
           <img
             src={currentBeatImage}
             alt="Currently playing"
-            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center"
+            className="rounded-md max-w-32 max-h-32 h-full object-scale-down flex items-center justify-center sm:w-28 sm:h-28 w-14"
           />
         )}
         {/* Play/Pause Icon */}
@@ -48,15 +47,19 @@ export const Footer: React.FC = () => {
             )}
           </svg>
         </div>
+        {/* <div className="flex flex-col items-start gap-2 absolute">
+            Playing:
+        <ScrollingText width={100} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
+        </div> */}
       </div>
 
       {/* Waveform Section */}
-      <div className="flex w-full items-center justify-between gap-4 -z-10">
+      <div className="flex w-full items-center justify-between gap-1 sm:gap-4 -z-10">
         <div className="flex flex-col items-start gap-2 absolute">
             Playing:
-        <ScrollingText width={100} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
+        <ScrollingText width={90} text={currentBeatName || 'No beat selected'} beatId={currentBeatId}/>
         </div>
-        <div className='min-w-28 z-10'>
+        <div className='min-w-24 z-10 sm:min-w-28'>
 
         </div>
         {currentBeatUrl && (
