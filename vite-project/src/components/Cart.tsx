@@ -29,14 +29,13 @@ const Cart = () => {
   const [discountCode, setDiscountCode] = useState<string>('');
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [error, setError] = useState<string>('');
+  const [discountApplied, setDiscountApplied] = useState<boolean>(false);
 
   useEffect(() => {
-    // Fetch licenses only once on component mount
     const fetchLicenses = async () => {
       try {
         const response = await axios.get(`${baseURL}/api/licenses`);
         setLicenses(response.data);
-        console.log('Licenses fetched:', response.data);
       } catch (err) {
         console.error('Error fetching licenses:', err);
         setError('Failed to fetch license information');
@@ -47,15 +46,15 @@ const Cart = () => {
   }, []);
 
   useEffect(() => {
-    if (!licenses.length) return; // Don't fetch cart items until licenses are available
+    if (!licenses.length) return; 
 
     const fetchCartItems = async () => {
-      console.log('Fetching cart items...');
+      ('Fetching cart items...');
       try {
         const token = localStorage.getItem('token');
         if (!token) {
           console.error('No token found');
-          setError('You must be logged in to view your cart');
+          setError('Zaloguj się, by zobaczyć swój koszyk');
           return;
         }
 
@@ -66,13 +65,10 @@ const Cart = () => {
         });
 
         const cartItems = cartResponse.data;
-        console.log('API response for cart items:', cartItems);
 
-        // Fetch image URLs and license prices for each beat
         const itemsWithImagesAndPrices = await Promise.all(
           cartItems.map(async (item: CartItemProps) => {
             try {
-              // Get the image URL for the beat
               const beatResponse = await axios.get(
                 `${baseURL}/api/beats/${item.beat_id}`,
                 {
@@ -81,9 +77,7 @@ const Cart = () => {
                   },
                 }
               );
-              console.log(`Image fetched for beat ID ${item.beat_id}:`, beatResponse.data.image_url);
 
-              // Get the price for the license and ensure it's a number
               const license = licenses.find(license => license.id === item.license_id);
               const licensePrice = license ? parseFloat(license.price.toString()) : 0;
 
@@ -94,7 +88,7 @@ const Cart = () => {
               };
             } catch (err) {
               console.error(`Failed to fetch image or license for beat ID ${item.beat_id}`, err);
-              return { ...item, image_url: '/default-image.jpg', license_price: 0 }; // Fallback
+              return { ...item, image_url: '/x.jpg', license_price: 0 }; // Fallback
             }
           })
         );
@@ -108,26 +102,24 @@ const Cart = () => {
     };
 
     fetchCartItems();
-  }, [licenses]); // Only re-fetch if licenses are available
+  }, [licenses]); 
 
-  // Calculate the total price
   const calculateTotalPrice = (items: CartItemProps[]) => {
-    console.log('Calculating total price...');
+    ('Calculating total price...');
     const price = items.reduce((acc, item) => {
       const itemPrice = item.license_price || 0; // Default to 0 if no license_price
-      console.log(`Adding price for item with license ID ${item.license_id}: $${itemPrice}`);
       return acc + itemPrice;
     }, 0);
 
     const discountMultiplier = discountCode ? 0.9 : 1; // Example: 10% discount if there's a code
     const finalPrice = price * discountMultiplier;
 
-    console.log('Calculated total price:', finalPrice);
     setTotalPrice(finalPrice);
     localStorage.setItem('totalPrice', finalPrice.toString()); // Store price in localStorage
   };
 
-  // Retrieve the stored price from localStorage if available
+  
+
   useEffect(() => {
     const storedPrice = localStorage.getItem('totalPrice');
     if (storedPrice) {
@@ -135,9 +127,7 @@ const Cart = () => {
     }
   }, []);
 
-  // Handle removing item from cart
   const handleRemoveItem = async (cartId: number) => {
-    console.log(`Removing item with cart_id ${cartId}...`);
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -151,9 +141,7 @@ const Cart = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(`Successfully removed item with cart_id ${cartId}`);
       const updatedCart = cartItems.filter(item => item.cart_id !== cartId);
-      console.log('Updated cart after removal:', updatedCart);
       setCartItems(updatedCart);
       calculateTotalPrice(updatedCart);
     } catch (err) {
@@ -194,50 +182,85 @@ const Cart = () => {
     }
   };
 
-  // Handle discount code change
-  const handleDiscountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Changing discount code:', event.target.value);
-    setDiscountCode(event.target.value);
+  const validateDiscountCode = async (code: string) => {
+    try {
+      const response = await axios.get(`${baseURL}/api/discount-codes/${code}`);
+      console.log('Valid discount code:', response.data);
+      return response.data; // Return discount details
+    } catch (err) {
+      console.error('Invalid or expired discount code:', err);
+      setError('Invalid or expired discount code');
+      return null;
+    }
   };
 
   return (
     <div className="cart-container">
       {error && <p className="error-message">{error}</p>}
-
-      <h1>Your Cart</h1>
-
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
+  
+      {localStorage.getItem('token') && (
         <>
-          <div className="cart-items">
-            {cartItems.map(item => (
-              <CartItem
-                key={item.cart_id}
-                cart_id={item.cart_id}
-                beat_title={item.beat_title}
-                bpm={item.bpm}
-                musical_key={item.musical_key}
-                image_url={item.image_url}
-                license_name={item.license_name}
-                license_price={item.license_price || 0}
-                onRemove={handleRemoveItem}
-              />
-            ))}
-          </div>
+          <h1>Twój koszyk</h1>
+  
+          {cartItems.length === 0 ? (
+            <p>Twój koszyk jest pusty.</p>
+          ) : (
+            <>
+              <div className="cart-items">
+                {cartItems.map(item => (
+                  <CartItem
+                    key={item.cart_id}
+                    cart_id={item.cart_id}
+                    beat_title={item.beat_title}
+                    bpm={item.bpm}
+                    musical_key={item.musical_key}
+                    image_url={item.image_url}
+                    license_name={item.license_name}
+                    license_price={item.license_price || 0}
+                    onRemove={handleRemoveItem}
+                  />
+                ))}
+              </div>
+  
+              <div className="order-summary">
+                <p>Total: ${totalPrice.toFixed(2)}</p>
 
-          <div className="order-summary">
-            <p>Total: ${totalPrice.toFixed(2)}</p>
+                {!discountApplied && (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Enter discount code"
+                      value={discountCode}
+                      onChange={(event) => setDiscountCode(event.target.value)}
+                      className="text-black"
+                    />
+                    <button
+                      className="apply-discount-btn"
+                      onClick={async () => {
+                        if (discountCode) {
+                          const discount = await validateDiscountCode(discountCode);
+                          if (discount) {
+                            setTotalPrice((prevPrice) => prevPrice * (1 - discount.discount_percentage / 100));
+                            setDiscountApplied(true);
+                            setError('');
+                          }
+                        } else {
+                          setError('Please enter a discount code.');
+                        }
+                      }}
+                    >
+                      Apply Discount
+                    </button>
+                  </>
+                )}
+                {discountApplied && <p>Discount applied successfully!</p>}
 
-            <input
-              type="text"
-              placeholder="Enter discount code"
-              value={discountCode}
-              onChange={handleDiscountChange}
-            />
-
-            <button onClick={handlePlaceOrder}>Place Order</button>
-          </div>
+                <button className="place-order-btn" onClick={handlePlaceOrder}>
+                  Place Order
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

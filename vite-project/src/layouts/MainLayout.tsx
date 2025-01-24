@@ -17,7 +17,7 @@ const MainLayout = () => {
             <Sidebar />
           </div>
         )}
-        <div className="flex flex-col text-text p-4 overflow-hidden w-full pb-96">
+        <div className="flex flex-col text-text p-4 overflow-hidden w-full pb-48">
           <Outlet />
         </div>
       </div>

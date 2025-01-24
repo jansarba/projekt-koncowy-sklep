@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const UploadBeat: React.FC = () => {
@@ -12,6 +12,9 @@ const UploadBeat: React.FC = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [tagOptions, setTagOptions] = useState<{ value: string; label: string }[]>([]);
     const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
+    const [sample, setSample] = useState('');
+    const [ismp3only, setIsMp3only] = useState(false);
+    const [zipFile, setZipFile] = useState<File | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -26,7 +29,6 @@ const UploadBeat: React.FC = () => {
             }
         }
 
-        // Fetch tags and authors
         const fetchData = async () => {
             try {
                 const tagsResponse = await fetch(`${baseURL}/api/tags`);
@@ -44,9 +46,67 @@ const UploadBeat: React.FC = () => {
         fetchData();
     }, []);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const resizeImage = (file: File, maxDimension: number): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                const img = new Image();
+
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    if (!ctx) {
+                        reject(new Error('Could not get canvas context'));
+                        return;
+                    }
+
+                    const aspectRatio = img.width / img.height;
+
+                    if (img.width > img.height) {
+                        canvas.width = Math.min(img.width, maxDimension);
+                        canvas.height = canvas.width / aspectRatio;
+                    } else {
+                        canvas.height = Math.min(img.height, maxDimension);
+                        canvas.width = canvas.height * aspectRatio;
+                    }
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                const resizedFile = new File([blob], file.name, { type: file.type });
+                                resolve(resizedFile);
+                            } else {
+                                reject(new Error('Canvas toBlob failed'));
+                            }
+                        },
+                        file.type,
+                        0.9 // Adjust the quality (0.9 is high quality)
+                    );
+                };
+
+                img.onerror = (err) => reject(err);
+                img.src = event.target?.result as string;
+            };
+
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setImageFile(e.target.files[0]);
+            const file = e.target.files[0];
+            try {
+                const resizedImage = await resizeImage(file, 512);
+                setImageFile(resizedImage);
+            } catch (error) {
+                console.error('Error resizing image:', error);
+                alert('Failed to process the image file.');
+            }
         }
     };
 
@@ -72,6 +132,12 @@ const UploadBeat: React.FC = () => {
         formData.append('image', imageFile);
         formData.append('mp3', mp3File);
         formData.append('authors', formattedAuthors.join(','));
+        formData.append('sample', sample);
+        formData.append('ismp3only', ismp3only.toString());
+        if (zipFile) {
+            formData.append('zip', zipFile);
+        }
+        
 
         try {
             const response = await fetch(`${baseURL}/api/upload-beat`, {
@@ -94,7 +160,7 @@ const UploadBeat: React.FC = () => {
     if (!isAdmin) {
         return (
             <div className="text-center p-5">
-                <p>You must be an admin to upload beats.</p>
+                <p>404!</p>
             </div>
         );
     }
@@ -175,6 +241,35 @@ const UploadBeat: React.FC = () => {
                             className="w-full p-3 border border-gray-300 rounded-md"
                         />
                     </div>
+                    <div>
+                        <label htmlFor="sample" className="block text-black">Sample info: (link/nazwa nuty !opcjonalne!)</label>
+                        <input
+                            type="text"
+                            id="sample"
+                            value={sample}
+                            onChange={(e) => setSample(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="ismp3only" className="block text-black">zaznacz jak masz tylko mp3 i tylko je sprzedajemy (stare bity co nie mam projektu)</label>
+                        <input
+                            type="checkbox"
+                            id="ismp3only"
+                            checked={ismp3only}
+                            onChange={(e) => setIsMp3only(e.target.checked)}
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="zip" className="block text-black">Upload Zip:</label>
+                        <input
+                            type="file"
+                            id="zip"
+                            accept=".zip"
+                            onChange={(e) => setZipFile(e.target.files ? e.target.files[0] : null)}
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                        />
+                    </div>
                     <div className="flex justify-center mt-6">
                         <button
                             type="button"
@@ -186,7 +281,6 @@ const UploadBeat: React.FC = () => {
                     </div>
                 </form>
 
-                {/* Display Tags and Authors as Plain Text */}
                 <div className="mt-8">
                     <h3 className="text-xl font-semibold">Tagi dotychczas (jesli wpiszesz inny to automatycznie sie doda + wielkosc liter nie ma znaczenia jak sobie filtruja):</h3>
                     <ul className="list-disc pl-5">

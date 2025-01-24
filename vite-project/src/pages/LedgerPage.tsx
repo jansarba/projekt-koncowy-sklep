@@ -1,4 +1,3 @@
-// LedgerPage.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -23,7 +22,7 @@ export const LedgerPage = () => {
         const token = localStorage.getItem('token');
 
         if (!token) {
-          setError('You must be logged in to view your orders');
+          setError('Zaloguj się, by zobaczyć historię zamówień.');
           return;
         }
 
@@ -51,7 +50,7 @@ export const LedgerPage = () => {
     <div className="ledger-page pb-44">
       {error && <p className="text-red-500">{error}</p>} {/* Show error if any */}
 
-      <h1 className="text-2xl font-bold mb-4">Order Ledger</h1>
+      <h1 className="text-2xl font-bold mb-4">Historia zamówień</h1>
 
       <div className="orders-list space-y-4">
         {orders.map((order) => (
