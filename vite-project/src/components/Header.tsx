@@ -60,7 +60,7 @@ export const Header = () => {
           navigate('/'); // Navigate to the home page regardless
         }}
       >
-        gnusny sklep na bity
+        łupiebasem.pl
       </h1>
 
       {/* Buttons container */}
