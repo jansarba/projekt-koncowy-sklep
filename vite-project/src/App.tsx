@@ -14,16 +14,14 @@ import BeatUploadPage from './pages/BeatUploadPage';
 
 function App() {
   return (
-    <SidebarProvider> {/* Wrap the entire app with the SidebarProvider */}
+    <SidebarProvider> 
       <Router>
         <Routes>
-          {/* Main layout with Sidebar */}
           <Route path="/" element={<MainLayout />}>
             <Route path="/" element={<ItemsPresenter />} />
             <Route path="/beat/:id" element={<BeatDetailsPage />} />
           </Route>
 
-          {/* No Sidebar layout for Login and Register */}
           <Route path="/" element={<NoSidebarLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
