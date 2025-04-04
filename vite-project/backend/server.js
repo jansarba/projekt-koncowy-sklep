@@ -410,13 +410,13 @@ app.get('/api/beats/:id', async (req, res) => {
 
       // Generate presigned URLs for the MP3 and image
       const mp3Params = {
-          Bucket: 'beatstore-bucket/mp3', // Your bucket and directory for MP3 files
+          Bucket: 'beatstore-bucket/mp3', // Bucket and directory for MP3 files
           Key: decodeURIComponent(beat.mp3_url.split('/').pop()), // Extract the key from the URL
           Expires: 60 * 60, // 1 hour expiration
       };
 
       const imageParams = {
-          Bucket: 'beatstore-bucket/images', // Your bucket and directory for image files
+          Bucket: 'beatstore-bucket/images', // Bucket and directory for image files
           Key: decodeURIComponent(beat.image_url.split('/').pop()), // Extract the key from the URL
           Expires: 60 * 60, // 1 hour expiration
       };
@@ -791,7 +791,7 @@ app.get('/api/orders/:id', authenticateJWT, async (req, res) => {
 
     const itemsWithPresignedUrls = itemsResult.rows.map((item) => {
       const imageParams = {
-        Bucket: 'beatstore-bucket/images', // Adjust for your S3 structure
+        Bucket: 'beatstore-bucket/images', // Adjust for S3 structure
         Key: decodeURIComponent(item.image_url?.split('/').pop()),
         Expires: 60 * 60, // 1 hour
       };
@@ -875,7 +875,7 @@ app.post('/api/get-download-link', async (req, res) => {
 
     // Generate a signed URL for the file
     const params = {
-      Bucket: 'beatstore-bucket/files', // Your bucket and directory for mp3 files
+      Bucket: 'beatstore-bucket/files', // Bucket and directory for mp3 files
       Key: fileKey,
       Expires: 60 * 60, // 1 hour expiration
     };
