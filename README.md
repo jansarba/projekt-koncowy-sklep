@@ -1,54 +1,71 @@
-# projekt końcowy - WDAI
+# Project
 
-## Opis
+If hosting is active, you can view it [here](https://projekt-koncowy-sklep.onrender.com/). The backend spins down with inactivity and may take up to a minute to start working again.
 
-Projekt wykonany jest w postaci sklepu z podkładami muzycznymi. Składa się on z:
- - backendu wykorzystującego Express.js,
- - frontendu zbudowanego z Vite + React + TypeScript,
- - bazy danych PostgreSQL.
+## Description
 
-Dodatkowo, korzystam z:
+This project is a **beat store** built with the following stack:
+- **Backend** using Express.js  
+- **Frontend** built with Vite + React + TypeScript  
+- **PostgreSQL** database
 
- - [Tailwind CSS](https://tailwindcss.com/),
- - [wavesurfer](https://github.com/katspaugh/wavesurfer.js),
- - [HeadlessUI](https://headlessui.com/).
+Additional tools and libraries used:
+- [Tailwind CSS](https://tailwindcss.com/)
+- [wavesurfer.js](https://github.com/katspaugh/wavesurfer.js)
+- [HeadlessUI](https://headlessui.com/)
 
-Na chwilę obecną, hostingi z jakich osobiście korzystam, to darmowe wersje:
- - [AWS S3](https://aws.amazon.com/s3/) (bucket),
- - [Render](https://render.com/) (baza danych, backend, domena).
+Currently, the project is hosted using free tiers of:
+- [AWS S3](https://aws.amazon.com/s3/) (for file storage)
+- [Render](https://render.com/) (for the database, backend, and domain)
 
-Funkcjonalności znaleźć można w [wymaganiach](Projekt.pdf). Mój projekt spełnia wszystkie.
+### Key Functionalities  
+- **User Authentication**: Login and registration.
+- **Product Management**: Display of all products with names, descriptions, and categories, along with a search feature.  
+- **Product Details**: Detailed view of individual products with options to add reviews.  
+- **Shopping Cart**: Add/remove products, calculate totals, and checkout functionality.  
+- **Order History**: View past orders and their details.  
+- **Admin Panel**: Two-level user permissions (admin can delete all reviews; users can only edit/delete their own).  
+- **JWT Authentication**: Secure login with JWT and refresh tokens.
+
+The database schema is as follows:
+![schema](schemat.png)
 
 ## Setup
 
-Aby otworzyć stronę lokalnie, wystarczy w folderze bazowym wpisać następujące komendy:
-```
+To run the project locally, execute the following commands from the root directory:
+
+```bash
 cd vite-project
-npm i
+npm install
 npm run dev
 ```
-Następnie, w nowej instancji terminala:
-```
+
+Then, in a new terminal instance:
+
+```bash
 cd vite-project/backend
-npm i 
+npm install
 npm run startdev
 ```
-Komenda startdev pozwala na automatyczny restart serwera w razie zmian w pliku server.js.
 
-Aby połączyć się z bazą danych oraz bucketem, należy zapewnić swoje dane w nowym pliku vite-project/.env, na przykład:
+> The `startdev` script automatically restarts the server when changes are made to `server.js`.
+
+To connect to the database and AWS bucket, create a `.env` file inside `vite-project/` with your credentials, e.g.:
+
 ```
 PORT=2137
 VITE_API_BASE_URL=http://localhost:2137
-DB_USER=[nazwa uzytkownika]
-DB_HOST=[link do hosta bazy danych]
-DB_NAME=[nazwa bazy danych]
-DB_PASSWORD=[haslo do bazy danych]
-DB_PORT=[port bazy danych]
 
-VITE_AWS_ACCESS_KEY_ID=[klucz aws]
-VITE_AWS_SECRET_ACCESS_KEY=[sekretny klucz aws]
-VITE_AWS_BUCKET_NAME=[nazwa bucketa]
-VITE_AWS_REGION=[region bucketa]
+DB_USER=[your database username]
+DB_HOST=[your database host URL]
+DB_NAME=[your database name]
+DB_PASSWORD=[your database password]
+DB_PORT=[your database port]
 
-JWT_SECRET=jakis-sekretny-jwt
+VITE_AWS_ACCESS_KEY_ID=[your AWS access key]
+VITE_AWS_SECRET_ACCESS_KEY=[your AWS secret key]
+VITE_AWS_BUCKET_NAME=[your S3 bucket name]
+VITE_AWS_REGION=[your S3 bucket region]
+
+JWT_SECRET=some-secret-jwt
 ```
