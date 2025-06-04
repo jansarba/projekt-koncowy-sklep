@@ -192,6 +192,8 @@ app.post(
   upload.fields([{ name: 'image', maxCount: 1 }, { name: 'mp3', maxCount: 1 }, { name: 'zip', maxCount: 1 }]),
   async (req, res) => {
     const { title, bpm, musical_key, tags, authors, sample, ismp3only } = req.body; // 'authors' is a comma-separated string of author names
+    const safeSample = sample === 'true' || sample === true;
+    const safeIsMp3Only = ismp3only === 'true' || ismp3only === true;
     const { image, mp3, zip } = req.files;
 
     if (!title || !bpm || !musical_key || !tags || !authors || !image || !mp3) {
@@ -236,7 +238,7 @@ app.post(
       const beatResult = await client.query(
         `INSERT INTO beats (title, bpm, musical_key, tags, mp3_url, image_url, sample, ismp3only)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location, sample, ismp3only]
+        [title, bpm, musical_key, formattedTags, mp3UploadResult.Location, imageUploadResult.Location, safeSample, safeIsMp3Only]
       );
       const beatId = beatResult.rows[0].id;
 
