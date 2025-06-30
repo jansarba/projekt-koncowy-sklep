@@ -2,6 +2,8 @@
 
 If hosting is active, you can view it [here](https://projekt-koncowy-sklep.onrender.com/). The backend spins down with inactivity and may take up to a minute to start working again.
 
+![](screenshot-main.png)
+
 ## Description
 
 This project is a **beat store** built with the following stack:
@@ -69,3 +71,5 @@ VITE_AWS_REGION=[your S3 bucket region]
 
 JWT_SECRET=some-secret-jwt
 ```
+
+![](screenshot-beat.png)
