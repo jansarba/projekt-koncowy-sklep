@@ -7,62 +7,54 @@ interface WaveformOverlayProps {
   setCurrentTime: (time: number) => void;
 }
 
-const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
-  audioUrl,
-  isPlaying,
-  setCurrentTime,
-}) => {
+// Extend the Navigator interface for the non-standard audioSession property
+interface NavigatorWithAudioSession extends Navigator {
+  audioSession?: {
+    type: 'playback' | 'play-and-record' | 'record' | 'ambient';
+  };
+}
+
+const WaveformOverlay: React.FC<WaveformOverlayProps> = ({ audioUrl, isPlaying, setCurrentTime }) => {
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false); // Track if the waveform is loaded
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check if the browser is Safari and if iOS 17 or later is detected
-    if ((navigator.userAgent.includes("Safari") && /iPhone|iPad|iPod/.test(navigator.userAgent) && parseInt((navigator as any).appVersion.match(/OS (\d+)_/)[1]) >= 17) || navigator.userAgent.includes("Messenger") ||
-    navigator.userAgent.includes("Ios") ||
-    navigator.userAgent.includes("Facebook") ||
-    navigator.userAgent.includes("Meta")) {
-      // Set the audio session type to "playback" to prevent muting when the ringer is off
-      if ((navigator as any)['audioSession']) {
-        (navigator as any)['audioSession'].type = 'playback';
-      }
+    const customNavigator = navigator as NavigatorWithAudioSession;
+    if (customNavigator.audioSession) {
+      customNavigator.audioSession.type = 'playback';
     }
 
     if (!waveformRef.current) return;
 
-    // Create or recreate the WaveSurfer instance
-    if (!wavesurferRef.current) {
-      wavesurferRef.current = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: 'rgb(255, 255, 255)',
-        progressColor: 'rgb(160, 71, 71)',
-        cursorColor: 'rgb(0, 0, 0)',
-        barWidth: 0,
-        hideScrollbar: true,
-        height: 75,
-        backend: 'MediaElement',
-        fetchParams: {
-          cache: 'default', // Default cache behavior
-          mode: 'cors', // CORS mode for cross-origin requests
-          method: 'GET', // Request method
-        },
-      });
+    wavesurferRef.current = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: 'rgb(255, 255, 255)',
+      progressColor: 'rgb(160, 71, 71)',
+      cursorColor: 'rgb(0, 0, 0)',
+      barWidth: 0,
+      hideScrollbar: true,
+      height: 75,
+      backend: 'MediaElement',
+      fetchParams: {
+        cache: 'default',
+        mode: 'cors',
+        method: 'GET',
+      },
+    });
 
-      wavesurferRef.current.load(audioUrl);
+    wavesurferRef.current.load(audioUrl);
 
-      wavesurferRef.current.on('ready', () => {
-        ('Waveform is ready');
-        setIsLoaded(true);
-        if (isPlaying) {
+    wavesurferRef.current.on('ready', () => {
+      setIsLoaded(true);
+      if (isPlaying) {
+        wavesurferRef.current?.play();
+      }
+    });
 
-          wavesurferRef.current?.play();
-        }
-      });
-
-      wavesurferRef.current.on('audioprocess', (time) => {
-        setCurrentTime(time);
-      });
-    }
+    wavesurferRef.current.on('audioprocess', (time) => {
+      setCurrentTime(time);
+    });
 
     return () => {
       wavesurferRef.current?.destroy();
@@ -71,7 +63,6 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
   }, [audioUrl]);
 
   useEffect(() => {
-    // Control playback state based on isPlaying
     if (wavesurferRef.current) {
       if (isPlaying) {
         wavesurferRef.current.play();
@@ -86,7 +77,7 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({
       className="w-full z-10"
       ref={waveformRef}
       style={{
-        filter: isLoaded ? 'drop-shadow(0 0 15px rgba(160, 71, 71, 0.3))' : 'none', // Glow effect on the waveform
+        filter: isLoaded ? 'drop-shadow(0 0 15px rgba(160, 71, 71, 0.3))' : 'none',
       }}
     />
   );
