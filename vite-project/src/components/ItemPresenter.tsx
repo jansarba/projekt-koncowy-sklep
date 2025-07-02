@@ -1,10 +1,11 @@
-import { useEffect } from "react";
-import { ItemHandler } from "./ItemHandler";
+import { useEffect } from 'react';
+import { ItemHandler } from './ItemHandler';
 
-export const ItemsPresenter = () => {
+export const ItemsPresenter: React.FC = () => {
   useEffect(() => {
-    document.title = "gnusny";
-  });
+    document.title = 'gnusny';
+  }, []);
+
   return (
     <div className="container mx-auto p-4 flex flex-col md:flex-row">
       <div className="flex-grow">

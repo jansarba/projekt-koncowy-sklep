@@ -2,9 +2,9 @@ import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ScrollingTextProps {
-  width: number; // Width of the container in pixels
-  text: string;  // Text to display
-  beatId?: number | null; // Optional ID of the beat for navigation
+  width: number;
+  text: string;
+  beatId?: number | null;
 }
 
 const ScrollingText: React.FC<ScrollingTextProps> = ({ width, text, beatId }) => {
@@ -12,20 +12,19 @@ const ScrollingText: React.FC<ScrollingTextProps> = ({ width, text, beatId }) =>
   const [shouldScroll, setShouldScroll] = useState(false);
   const navigate = useNavigate();
 
-  // Adjust this factor to control animation speed (higher = slower)
+  // This factor can be adjusted to control animation speed (higher value = slower animation)
   const speedFactor = 3;
 
   useEffect(() => {
-    // Average width of a single character in pixels (adjust if needed)
-    const avgCharWidth = 8; // Approximation based on font size and style
+    // An approximation for average character width to determine if text overflows
+    const avgCharWidth = 8;
     const textWidth = text.length * avgCharWidth;
-    // Determine if scrolling is needed
     setShouldScroll(textWidth > width);
   }, [text, width]);
 
   const handleClick = () => {
     if (beatId) {
-      navigate(`/beat/${beatId}`); // Navigate to the beat's page if beatId exists
+      navigate(`/beat/${beatId}`);
     }
   };
 
@@ -47,20 +46,13 @@ const ScrollingText: React.FC<ScrollingTextProps> = ({ width, text, beatId }) =>
         style={{
           display: 'inline-block',
           paddingLeft: shouldScroll ? `${width}px` : '0',
-          animation: shouldScroll
-            ? `scroll-text ${text.length / 4 * speedFactor}s linear infinite`
-            : 'none',
+          animation: shouldScroll ? `scroll-text ${text.length / 4 * speedFactor}s linear infinite` : 'none',
         }}
       >
         {text}
         {shouldScroll && <span style={{ paddingLeft: '2rem' }}>{text}</span>}
       </div>
-      {beatId && (
-        <div
-          className="absolute bottom-0 left-0 w-full h-[1px] bg-transparent group-hover:bg-white transition-all duration-300"
-          style={{ marginTop: '2px' }}
-        ></div>
-      )}
+      {beatId && <div className="absolute bottom-0 left-0 w-full h-[1px] bg-transparent group-hover:bg-white transition-all duration-300" style={{ marginTop: '2px' }}></div>}
     </div>
   );
 };

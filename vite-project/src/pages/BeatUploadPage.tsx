@@ -1,303 +1,154 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-const UploadBeat: React.FC = () => {
-    const [title, setTitle] = useState('Beat Title');
-    const [bpm, setBpm] = useState(120);
-    const [musicalKey, setMusicalKey] = useState('C Major');
-    const [tags, setTags] = useState('hip-hop, trap');
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [mp3File, setMp3File] = useState<File | null>(null);
-    const [authorNames, setAuthorNames] = useState('sarba');
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [tagOptions, setTagOptions] = useState<{ value: string; label: string }[]>([]);
-    const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
-    const [sample, setSample] = useState('');
-    const [ismp3only, setIsMp3only] = useState(false);
-    const [zipFile, setZipFile] = useState<File | null>(null);
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decode and parse the payload
-                if (decodedToken.role === 'admin') {
-                    setIsAdmin(true); // Set isAdmin if the role is 'admin'
-                }
-            } catch (error) {
-                console.error('Invalid token', error);
-            }
-        }
+const BeatUploadPage: React.FC = () => {
+  const [title, setTitle] = useState('Beat Title');
+  const [bpm, setBpm] = useState(120);
+  const [musicalKey, setMusicalKey] = useState('C Major');
+  const [tags, setTags] = useState('hip-hop, trap');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [mp3File, setMp3File] = useState<File | null>(null);
+  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [authorNames, setAuthorNames] = useState('sarba');
+  const [sample, setSample] = useState('');
+  const [isMp3Only, setIsMp3Only] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-        const fetchData = async () => {
-            try {
-                const tagsResponse = await fetch(`${baseURL}/api/tags`);
-                const tagsData = await tagsResponse.json();
-                setTagOptions(tagsData);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        if (decodedToken.role === 'admin') setIsAdmin(true);
+      } catch (error) {
+        console.error('Invalid token:', error);
+      }
+    }
+  }, []);
 
-                const authorsResponse = await fetch(`${baseURL}/api/authors`);
-                const authorsData = await authorsResponse.json();
-                setAuthorOptions(authorsData);
-            } catch (error) {
-                console.error('Error fetching tags/authors:', error);
-            }
+  const resizeImage = (file: File, maxDimension: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('Canvas context not available'));
+          const aspectRatio = img.width / img.height;
+          canvas.width = img.width > img.height ? Math.min(img.width, maxDimension) : Math.min(img.height, maxDimension) * aspectRatio;
+          canvas.height = img.width > img.height ? Math.min(img.width, maxDimension) / aspectRatio : Math.min(img.height, maxDimension);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(new File([blob], file.name, { type: file.type, lastModified: Date.now() }));
+            else reject(new Error('Canvas toBlob failed'));
+          }, file.type, 0.9);
         };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
-        fetchData();
-    }, []);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      try {
+        const resized = await resizeImage(e.target.files[0], 512);
+        setImageFile(resized);
+      } catch (error) {
+        console.error('Image resizing failed:', error);
+        alert('Failed to process image.');
+      }
+    }
+  };
 
-    const resizeImage = (file: File, maxDimension: number): Promise<File> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                const img = new Image();
-
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    if (!ctx) {
-                        reject(new Error('Could not get canvas context'));
-                        return;
-                    }
-
-                    const aspectRatio = img.width / img.height;
-
-                    if (img.width > img.height) {
-                        canvas.width = Math.min(img.width, maxDimension);
-                        canvas.height = canvas.width / aspectRatio;
-                    } else {
-                        canvas.height = Math.min(img.height, maxDimension);
-                        canvas.width = canvas.height * aspectRatio;
-                    }
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob) {
-                                const resizedFile = new File([blob], file.name, { type: file.type });
-                                resolve(resizedFile);
-                            } else {
-                                reject(new Error('Canvas toBlob failed'));
-                            }
-                        },
-                        file.type,
-                        0.9 // Adjust the quality (0.9 is high quality)
-                    );
-                };
-
-                img.onerror = (err) => reject(err);
-                img.src = event.target?.result as string;
-            };
-
-            reader.onerror = (err) => reject(err);
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const file = e.target.files[0];
-            try {
-                const resizedImage = await resizeImage(file, 512);
-                setImageFile(resizedImage);
-            } catch (error) {
-                console.error('Error resizing image:', error);
-                alert('Failed to process the image file.');
-            }
-        }
-    };
-
-    const handleMp3Change = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setMp3File(e.target.files[0]);
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!title || !bpm || !musicalKey || !tags || !imageFile || !mp3File || !authorNames.trim()) {
-            alert('Please fill in all fields and upload both files.');
-            return;
-        }
-
-        const formattedAuthors = authorNames.split(',').map((author) => author.trim()).filter((author) => author.length > 0);
-
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('bpm', bpm.toString());
-        formData.append('musical_key', musicalKey);
-        formData.append('tags', tags);
-        formData.append('image', imageFile);
-        formData.append('mp3', mp3File);
-        formData.append('authors', formattedAuthors.join(','));
-        formData.append('sample', sample);
-        formData.append('ismp3only', ismp3only.toString());
-        if (zipFile) {
-            formData.append('zip', zipFile);
-        }
-        
-
-        try {
-            const response = await fetch(`${baseURL}/api/upload-beat`, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                alert('Beat uploaded successfully');
-            } else {
-                const errorText = await response.text();
-                alert(`Failed to upload beat: ${errorText}`);
-            }
-        } catch (error) {
-            console.error('Error uploading beat:', error);
-            alert('An error occurred while uploading the beat.');
-        }
-    };
-
-    if (!isAdmin) {
-        return (
-            <div className="text-center p-5">
-                <p>404!</p>
-            </div>
-        );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !bpm || !musicalKey || !tags || !imageFile || !mp3File || !authorNames.trim()) {
+      alert('Please fill all required fields and upload files.');
+      return;
     }
 
-    return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100 p-60 pt-0 text-black">
-            <div className="bg-white rounded-lg shadow-lg w-full sm:w-96">
-                <h2 className="text-2xl font-bold text-center text-black">Upload New Beat</h2>
-                <form className="">
-                    <div>
-                        <label htmlFor="title" className="block text-black">Title:</label>
-                        <input
-                            type="text"
-                            id="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="bpm" className="block text-black">BPM:</label>
-                        <input
-                            type="number"
-                            id="bpm"
-                            value={bpm}
-                            onChange={(e) => setBpm(Number(e.target.value))}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="musicalKey" className="block text-black">Musical Key:</label>
-                        <input
-                            type="text"
-                            id="musicalKey"
-                            value={musicalKey}
-                            onChange={(e) => setMusicalKey(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="tags" className="block text-black">Tags (comma separated):</label>
-                        <input
-                            type="text"
-                            id="tags"
-                            value={tags}
-                            onChange={(e) => setTags(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="authors" className="block text-black">Authors (comma separated):</label>
-                        <input
-                            type="text"
-                            id="authors"
-                            value={authorNames}
-                            onChange={(e) => setAuthorNames(e.target.value)}
-                            placeholder="e.g., Author1, Author2"
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="image" className="block text-black">Upload Image:</label>
-                        <input
-                            type="file"
-                            id="image"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="mp3" className="block text-black">Upload MP3:</label>
-                        <input
-                            type="file"
-                            id="mp3"
-                            accept="audio/mp3"
-                            onChange={handleMp3Change}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="sample" className="block text-black">Sample info: (link/nazwa nuty !opcjonalne!)</label>
-                        <input
-                            type="text"
-                            id="sample"
-                            value={sample}
-                            onChange={(e) => setSample(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="ismp3only" className="block text-black">zaznacz jak masz tylko mp3 i tylko je sprzedajemy (stare bity co nie mam projektu)</label>
-                        <input
-                            type="checkbox"
-                            id="ismp3only"
-                            checked={ismp3only}
-                            onChange={(e) => setIsMp3only(e.target.checked)}
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="zip" className="block text-black">Upload Zip:</label>
-                        <input
-                            type="file"
-                            id="zip"
-                            accept=".zip"
-                            onChange={(e) => setZipFile(e.target.files ? e.target.files[0] : null)}
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                        />
-                    </div>
-                    <div className="flex justify-center mt-6">
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            className="bg-blue-500 text-white p-3 rounded-md w-full hover:bg-blue-600"
-                        >
-                            Upload Beat
-                        </button>
-                    </div>
-                </form>
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('bpm', bpm.toString());
+    formData.append('musical_key', musicalKey);
+    formData.append('tags', tags);
+    formData.append('authors', authorNames);
+    formData.append('image', imageFile);
+    formData.append('mp3', mp3File);
+    formData.append('sample', sample);
+    formData.append('ismp3only', String(isMp3Only));
+    if (zipFile) formData.append('zip', zipFile);
 
-                <div className="mt-8">
-                    <h3 className="text-xl font-semibold">Tagi dotychczas (jesli wpiszesz inny to automatycznie sie doda + wielkosc liter nie ma znaczenia jak sobie filtruja):</h3>
-                    <ul className="list-disc pl-5">
-                        {tagOptions.map((tag) => (
-                            <li key={tag.value} className="text-black">{tag.label}</li>
-                        ))}
-                    </ul>
-                    <h3 className="text-xl font-semibold mt-4">Autorzy dotychczas (tez sie samo doda jak cos):</h3>
-                    <ul className="list-disc pl-5">
-                        {authorOptions.map((author) => (
-                            <li key={author.id} className="text-black">{author.name}</li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        </div>
-    );
+    try {
+      const response = await fetch(`${baseURL}/api/upload-beat`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        alert('Beat uploaded successfully!');
+      } else {
+        const errorText = await response.text();
+        alert(`Upload failed: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error uploading beat:', error);
+      alert('An error occurred during upload.');
+    }
+  };
+
+  if (!isAdmin) return <div className="text-center p-5">404 Not Found</div>;
+
+  return (
+    <div className="flex justify-center items-start min-h-screen p-4 sm:p-6 bg-darker text-text">
+      <div className="bg-darkest rounded-lg shadow-lg p-6 w-full max-w-lg">
+        <h2 className="text-2xl font-bold text-center mb-6">Upload New Beat</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <InputField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <InputField label="BPM" type="number" value={bpm} onChange={(e) => setBpm(Number(e.target.value))} />
+          <InputField label="Musical Key" value={musicalKey} onChange={(e) => setMusicalKey(e.target.value)} />
+          <InputField label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} />
+          <InputField label="Authors (comma-separated)" value={authorNames} onChange={(e) => setAuthorNames(e.target.value)} />
+          <InputField label="Sample Info (optional)" value={sample} onChange={(e) => setSample(e.target.value)} />
+          <FileInput label="Image" accept="image/*" onChange={handleImageChange} />
+          <FileInput label="MP3" accept="audio/mp3" onChange={(e) => setMp3File(e.target.files?.[0] || null)} />
+          <FileInput label="ZIP (optional)" accept=".zip" onChange={(e) => setZipFile(e.target.files?.[0] || null)} />
+          <Checkbox label="MP3 only (for old beats without project files)" checked={isMp3Only} onChange={(e) => setIsMp3Only(e.target.checked)} />
+          <button type="submit" className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition-colors">Upload Beat</button>
+        </form>
+      </div>
+    </div>
+  );
 };
 
-export default UploadBeat;
+// Helper components for form fields
+const InputField: React.FC<{ label: string, value: string | number, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, type?: string }> = 
+({ label, value, onChange, type = 'text' }) => (
+    <div>
+        <label className="block mb-1">{label}:</label>
+        <input type={type} value={value} onChange={onChange} className="w-full p-2 border border-gray-600 bg-dark text-white rounded-md" />
+    </div>
+);
+
+const FileInput: React.FC<{ label: string, accept: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = 
+({ label, accept, onChange }) => (
+    <div>
+        <label className="block mb-1">{label}:</label>
+        <input type="file" accept={accept} onChange={onChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+    </div>
+);
+
+const Checkbox: React.FC<{ label: string, checked: boolean, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = 
+({ label, checked, onChange }) => (
+    <div className="flex items-center">
+        <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+        <label className="ml-2 block text-sm">{label}</label>
+    </div>
+);
+
+export default BeatUploadPage;

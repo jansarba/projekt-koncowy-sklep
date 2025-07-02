@@ -1,28 +1,30 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; 
-import MainLayout from './layouts/MainLayout';  // Layout with Sidebar
-import NoSidebarLayout from './layouts/NoSidebarLayout';  // Layout without Sidebar
-import { SidebarProvider } from './contexts/SidebarContext'; // Import Sidebar context provider
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { SidebarProvider } from './contexts/SidebarContext';
+import MainLayout from './layouts/MainLayout';
+import NoSidebarLayout from './layouts/NoSidebarLayout';
 import { ItemsPresenter } from './components/ItemPresenter';
 import { BeatDetailsPage } from './pages/BeatDetailsPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import './index.css';
 import CartPage from './pages/CartPage';
 import OrderDetails from './pages/OrderPage';
 import { LedgerPage } from './pages/LedgerPage';
 import BeatUploadPage from './pages/BeatUploadPage';
+import './index.css';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <SidebarProvider> 
+    <SidebarProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
+          {/* Routes with Sidebar */}
+          <Route element={<MainLayout />}>
             <Route path="/" element={<ItemsPresenter />} />
             <Route path="/beat/:id" element={<BeatDetailsPage />} />
           </Route>
 
-          <Route path="/" element={<NoSidebarLayout />}>
+          {/* Routes without Sidebar */}
+          <Route element={<NoSidebarLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<CartPage />} />
@@ -34,6 +36,6 @@ function App() {
       </Router>
     </SidebarProvider>
   );
-}
+};
 
 export default App;
