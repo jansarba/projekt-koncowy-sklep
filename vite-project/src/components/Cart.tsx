@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CartItem from './CartItem';
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-type LicenseProps = {
+type License = {
   id: number;
   name: string;
   price: number;
 };
 
-type CartItemProps = {
+type CartItemType = {
   cart_id: number;
   beat_id: number;
   beat_title: string;
@@ -22,10 +23,24 @@ type CartItemProps = {
   license_price?: number;
 };
 
-const Cart = () => {
+type BeatResponse = {
+  image_url: string;
+};
+
+type OrderResponse = {
+  order: {
+    id: number;
+  };
+};
+
+type DiscountCode = {
+  discount_percentage: number;
+};
+
+const Cart: React.FC = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItemProps[]>([]);
-  const [licenses, setLicenses] = useState<LicenseProps[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemType[]>([]);
+  const [licenses, setLicenses] = useState<License[]>([]);
   const [discountCode, setDiscountCode] = useState<string>('');
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [error, setError] = useState<string>('');
@@ -34,114 +49,79 @@ const Cart = () => {
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
-        const response = await axios.get(`${baseURL}/api/licenses`);
+        const response = await axios.get<License[]>(`${baseURL}/api/licenses`);
         setLicenses(response.data);
       } catch (err) {
         console.error('Error fetching licenses:', err);
         setError('Failed to fetch license information');
       }
     };
-
     fetchLicenses();
   }, []);
 
+  const calculateTotalPrice = (items: CartItemType[]) => {
+    const total = items.reduce((acc, item) => acc + (item.license_price || 0), 0);
+    setTotalPrice(total);
+    localStorage.setItem('totalPrice', total.toString());
+  };
+
   useEffect(() => {
-    if (!licenses.length) return; 
+    if (!licenses.length) return;
 
     const fetchCartItems = async () => {
-      ('Fetching cart items...');
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('No token found');
-          setError('Zaloguj się, by zobaczyć swój koszyk');
-          return;
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Zaloguj się, by zobaczyć swój koszyk');
+        return;
+      }
 
-        const cartResponse = await axios.get(`${baseURL}/api/carts`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        const cartResponse = await axios.get<CartItemType[]>(`${baseURL}/api/carts`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        const cartItems = cartResponse.data;
-
-        const itemsWithImagesAndPrices = await Promise.all(
-          cartItems.map(async (item: CartItemProps) => {
+        const itemsWithDetails = await Promise.all(
+          cartResponse.data.map(async (item) => {
             try {
-              const beatResponse = await axios.get(
-                `${baseURL}/api/beats/${item.beat_id}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
+              const beatResponse = await axios.get<BeatResponse>(`${baseURL}/api/beats/${item.beat_id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
 
-              const license = licenses.find(license => license.id === item.license_id);
+              const license = licenses.find((l) => l.id === item.license_id);
               const licensePrice = license ? parseFloat(license.price.toString()) : 0;
 
-              return { 
-                ...item, 
-                image_url: beatResponse.data.image_url, 
-                license_price: licensePrice 
+              return {
+                ...item,
+                image_url: beatResponse.data.image_url,
+                license_price: licensePrice,
               };
             } catch (err) {
-              console.error(`Failed to fetch image or license for beat ID ${item.beat_id}`, err);
-              return { ...item, image_url: '/x.jpg', license_price: 0 }; // Fallback
+              console.error(`Failed to fetch details for beat ID ${item.beat_id}`, err);
+              return { ...item, image_url: '/x.jpg', license_price: 0 };
             }
           })
         );
-
-        setCartItems(itemsWithImagesAndPrices);
-        calculateTotalPrice(itemsWithImagesAndPrices);
+        setCartItems(itemsWithDetails);
+        calculateTotalPrice(itemsWithDetails);
       } catch (err) {
         console.error('Error fetching cart items:', err);
         setError('Failed to fetch cart items');
       }
     };
-
     fetchCartItems();
-  }, [licenses]); 
-
-  const calculateTotalPrice = (items: CartItemProps[]) => {
-    ('Calculating total price...');
-    const price = items.reduce((acc, item) => {
-      const itemPrice = item.license_price || 0; // Default to 0 if no license_price
-      return acc + itemPrice;
-    }, 0);
-
-    const discountMultiplier = discountCode ? 0.9 : 1; // Example: 10% discount if there's a code
-    const finalPrice = price * discountMultiplier;
-
-    setTotalPrice(finalPrice);
-    localStorage.setItem('totalPrice', finalPrice.toString()); // Store price in localStorage
-  };
-
-  
-
-  useEffect(() => {
-    const storedPrice = localStorage.getItem('totalPrice');
-    if (storedPrice) {
-      setTotalPrice(parseFloat(storedPrice));
-    }
-  }, []);
+  }, [licenses]);
 
   const handleRemoveItem = async (cartId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('You must be logged in to modify your cart');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token found');
-        setError('You must be logged in to modify your cart');
-        return;
-      }
-
       await axios.delete(`${baseURL}/api/carts/${cartId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const updatedCart = cartItems.filter(item => item.cart_id !== cartId);
+      const updatedCart = cartItems.filter((item) => item.cart_id !== cartId);
       setCartItems(updatedCart);
       calculateTotalPrice(updatedCart);
     } catch (err) {
@@ -150,31 +130,20 @@ const Cart = () => {
     }
   };
 
-  // Handle order placement
   const handlePlaceOrder = async () => {
-    console.log('Placing order...');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('You must be logged in to place an order');
+      return;
+    }
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token found');
-        setError('You must be logged in to place an order');
-        return;
-      }
-
-      const response = await axios.post(
+      const response = await axios.post<OrderResponse>(
         `${baseURL}/api/orders`,
         { discountCode },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      console.log('Order placement response:', response);
       if (response.status === 201) {
-        console.log('Order placed successfully! Redirecting to order details...');
-        navigate(`/order/${response.data.order.id}`); // Redirect to order details page
+        navigate(`/order/${response.data.order.id}`);
       }
     } catch (err) {
       console.error('Error placing order:', err);
@@ -182,11 +151,10 @@ const Cart = () => {
     }
   };
 
-  const validateDiscountCode = async (code: string) => {
+  const validateDiscountCode = async (code: string): Promise<DiscountCode | null> => {
     try {
-      const response = await axios.get(`${baseURL}/api/discount-codes/${code}`);
-      console.log('Valid discount code:', response.data);
-      return response.data; // Return discount details
+      const response = await axios.get<DiscountCode>(`${baseURL}/api/discount-codes/${code}`);
+      return response.data;
     } catch (err) {
       console.error('Invalid or expired discount code:', err);
       setError('Invalid or expired discount code');
@@ -194,20 +162,31 @@ const Cart = () => {
     }
   };
 
+  const applyDiscount = async () => {
+    if (!discountCode) {
+      setError('Please enter a discount code.');
+      return;
+    }
+    const discount = await validateDiscountCode(discountCode);
+    if (discount) {
+      setTotalPrice((prevPrice) => prevPrice * (1 - discount.discount_percentage / 100));
+      setDiscountApplied(true);
+      setError('');
+    }
+  };
+
   return (
     <div className="cart-container">
       {error && <p className="error-message">{error}</p>}
-  
       {localStorage.getItem('token') && (
         <>
           <h1>Twój koszyk</h1>
-  
           {cartItems.length === 0 ? (
             <p>Twój koszyk jest pusty.</p>
           ) : (
             <>
               <div className="cart-items">
-                {cartItems.map(item => (
+                {cartItems.map((item) => (
                   <CartItem
                     key={item.cart_id}
                     cart_id={item.cart_id}
@@ -221,10 +200,8 @@ const Cart = () => {
                   />
                 ))}
               </div>
-  
               <div className="order-summary">
                 <p>Total: ${totalPrice.toFixed(2)}</p>
-
                 {!discountApplied && (
                   <>
                     <input
@@ -234,27 +211,12 @@ const Cart = () => {
                       onChange={(event) => setDiscountCode(event.target.value)}
                       className="text-black"
                     />
-                    <button
-                      className="apply-discount-btn"
-                      onClick={async () => {
-                        if (discountCode) {
-                          const discount = await validateDiscountCode(discountCode);
-                          if (discount) {
-                            setTotalPrice((prevPrice) => prevPrice * (1 - discount.discount_percentage / 100));
-                            setDiscountApplied(true);
-                            setError('');
-                          }
-                        } else {
-                          setError('Please enter a discount code.');
-                        }
-                      }}
-                    >
+                    <button className="apply-discount-btn" onClick={applyDiscount}>
                       Apply Discount
                     </button>
                   </>
                 )}
                 {discountApplied && <p>Discount applied successfully!</p>}
-
                 <button className="place-order-btn" onClick={handlePlaceOrder}>
                   Place Order
                 </button>

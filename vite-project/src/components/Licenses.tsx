@@ -1,7 +1,8 @@
-import { Radio, RadioGroup } from '@headlessui/react'
-import { CheckCircleIcon } from '@heroicons/react/24/solid'
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom' // Import useParams to get the URL parameters
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Radio, RadioGroup } from '@headlessui/react';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
+
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export interface License {
@@ -10,71 +11,70 @@ export interface License {
   price: string;
 }
 
-interface LicensesProps {
-  setSelectedLicense: (license: License | null) => void; // Function passed from the parent component
+interface BeatData {
+  ismp3only: boolean;
 }
 
-export const Licenses = ({ setSelectedLicense }: LicensesProps) => {
-  const { id } = useParams(); // Get the beat ID from the URL parameters
+interface LicensesProps {
+  setSelectedLicense: (license: License | null) => void;
+}
+
+export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
+  const { id: beatId } = useParams<{ id: string }>();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selected, setSelected] = useState<License | null>(null);
-  const [isMp3Only, setIsMp3Only] = useState<boolean>(false); // New state to track ismp3only
+  const [isMp3Only, setIsMp3Only] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchLicenses = async () => {
-      try {
-        const response = await fetch(`${baseURL}/api/licenses?beatId=${id}`); // Add the beatId to the request URL
-        if (response.ok) {
-          const data = await response.json();
-          setLicenses(data);
-          if (data.length > 0) {
-            const defaultLicense = data[0]; // Set the first license as the default selection
-            setSelected(defaultLicense);
-            setSelectedLicense(defaultLicense); // Pass the default license to the parent component
-          }
+    const fetchLicenseData = async () => {
+      if (!beatId) return;
 
-          // Check if any license ismp3only is true
-          const beatResponse = await fetch(`${baseURL}/api/beats/${id}`);
-          if (beatResponse.ok) {
-            const beatData = await beatResponse.json();
-            setIsMp3Only(beatData.ismp3only); // Update ismp3only based on the beat data
+      try {
+        const [licensesResponse, beatResponse] = await Promise.all([
+          fetch(`${baseURL}/api/licenses?beatId=${beatId}`),
+          fetch(`${baseURL}/api/beats/${beatId}`),
+        ]);
+
+        if (licensesResponse.ok) {
+          const licensesData: License[] = await licensesResponse.json();
+          setLicenses(licensesData);
+          if (licensesData.length > 0) {
+            const defaultLicense = licensesData[0];
+            setSelected(defaultLicense);
+            setSelectedLicense(defaultLicense);
           }
         } else {
           console.error('Failed to fetch licenses');
         }
+
+        if (beatResponse.ok) {
+          const beatData: BeatData = await beatResponse.json();
+          setIsMp3Only(beatData.ismp3only);
+        }
       } catch (error) {
-        console.error('Error fetching licenses:', error);
+        console.error('Error fetching license data:', error);
       }
     };
 
-    if (id) {
-      fetchLicenses(); // Only fetch licenses if beatId is available
-    }
-  }, [id, setSelectedLicense]);
+    fetchLicenseData();
+  }, [beatId, setSelectedLicense]);
 
-  useEffect(() => {
-    // Whenever selected license changes, pass it back to the parent
-    if (selected) {
-      setSelectedLicense(selected);
-    }
-  }, [selected, setSelectedLicense]);
+  const handleSelectionChange = (license: License) => {
+    setSelected(license);
+    setSelectedLicense(license);
+  };
 
   return (
     <div className="px-4 flex flex-col items-center gap-4">
       {isMp3Only && (
         <div className="text-sm text-lightest mb-2 mt-2 max-w-[256px]">
-          <p>Póki co, ten bit dostępny jest tylko w mp3 - na zamówienie stems lub exclusive jego autor chętnie zrobi ci reproda. Napisz do nas!
-          </p>
+          <p>Póki co, ten bit dostępny jest tylko w mp3 - na zamówienie stems lub exclusive jego autor chętnie zrobi ci reproda. Napisz do nas!</p>
         </div>
       )}
       <div className="mx-auto max-w-xs min-w-64">
-        <RadioGroup value={selected} onChange={setSelected} aria-label="Beat License" className="space-y-2">
+        <RadioGroup value={selected} onChange={handleSelectionChange} aria-label="Beat License" className="space-y-2">
           {licenses.map((license) => (
-            <Radio
-              key={license.id}
-              value={license}
-              className="group relative flex cursor-pointer rounded-lg bg-white/5 py-3 px-5 text-white shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-white/10"
-            >
+            <Radio key={license.id} value={license} className="group relative flex cursor-pointer rounded-lg bg-white/5 py-3 px-5 text-white shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-white/10">
               <div className="flex w-full items-center justify-between">
                 <div className="text-sm/6">
                   <p className="font-semibold text-white">{license.name}</p>

@@ -1,13 +1,17 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import App from './App';
+import { MusicPlayerProvider } from './contexts/MusicPlayerContext';
+import { FiltersProvider } from './contexts/FiltersContext';
+import { PaginationProvider } from './contexts/PaginationContext';
 import './index.css';
-import App from './App.tsx';
-import { MusicPlayerProvider } from './contexts/MusicPlayerContext.tsx'; // Make sure MusicPlayerContext is properly imported
-import { FiltersProvider } from './contexts/FiltersContext.tsx';
-import { PaginationProvider } from "./contexts/PaginationContext";
 
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
 
-createRoot(document.getElementById('root')!).render(
+const root = createRoot(rootElement);
+
+root.render(
   <StrictMode>
     <MusicPlayerProvider>
       <PaginationProvider>
