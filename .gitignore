@@ -2,3 +2,5 @@ vite-project/backend/.env
 vite-project/.env
 .DS_Store
 vite-project/coverage/
+
+.vscode/
