@@ -86,8 +86,10 @@ const BeatUploadPage: React.FC = () => {
     if (zipFile) formData.append('zip', zipFile);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${baseURL}/api/upload-beat`, {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
       if (response.ok) {
