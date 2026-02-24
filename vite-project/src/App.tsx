@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { SidebarProvider } from './contexts/SidebarContext';
 import MainLayout from './layouts/MainLayout';
 import NoSidebarLayout from './layouts/NoSidebarLayout';
+import { Footer } from './components/Footer';
 import { ItemsPresenter } from './components/ItemPresenter';
 import { BeatDetailsPage } from './pages/BeatDetailsPage';
 import Login from './pages/Login';
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route path="/upload" element={<BeatUploadPage />} />
           </Route>
         </Routes>
+        <Footer />
       </Router>
     </SidebarProvider>
   );

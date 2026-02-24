@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Item, ItemProps } from './Item';
 import { useFilters } from '../contexts/FiltersContext';
 import { usePagination } from '../contexts/PaginationContext';
+import { useMock } from '../contexts/MockContext';
+import { mockBeats } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 const ITEMS_PER_PAGE = 12;
@@ -17,11 +19,41 @@ export const ItemHandler: React.FC = () => {
   const { currentPage, setCurrentPage } = usePagination();
   const [totalPages, setTotalPages] = useState(1);
   const { filters } = useFilters();
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const { isMockMode, checkingBackend } = useMock();
 
   useEffect(() => {
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+    if (checkingBackend) return;
+    if (isMockMode) {
+      let filtered = mockBeats;
+
+      if (filters.title) {
+        const query = filters.title.toLowerCase();
+        filtered = filtered.filter((b) => b.title.toLowerCase().includes(query));
+      }
+
+      if (filters.tags.length > 0) {
+        filtered = filtered.filter((b) =>
+          filters.tags.every((tag) => b.tags.includes(tag))
+        );
+      }
+
+      if (filters.musicalKey.trim()) {
+        const key = filters.musicalKey.toLowerCase().trim();
+        filtered = filtered.filter((b) => b.musical_key.toLowerCase().includes(key));
+      }
+
+      const [minBpm, maxBpm] = filters.bpmRange;
+      filtered = filtered.filter((b) => b.bpm >= minBpm && b.bpm <= maxBpm);
+
+      setItems(filtered);
+      setTotalPages(1);
+      setLoading(false);
+      return;
+    }
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
 
     const timer = setTimeout(() => {
@@ -54,14 +86,14 @@ export const ItemHandler: React.FC = () => {
       };
 
       fetchItems();
-    }, 500); // Debounce requests
+    }, 500);
 
-    setDebounceTimer(timer);
+    debounceTimer.current = timer;
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [currentPage, filters]);
+  }, [currentPage, filters, isMockMode, checkingBackend]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {

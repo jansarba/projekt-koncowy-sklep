@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import WaveformOverlay from '../components/WaveformOverlay';
 import { Licenses, License } from '../components/Licenses';
+import { useMock } from '../contexts/MockContext';
+import { mockBeatDetails, addToMockCart } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -48,6 +50,7 @@ export const BeatDetailsPage: React.FC = () => {
   const [opinionText, setOpinionText] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [decodedToken, setDecodedToken] = useState<DecodedToken | null>(null);
+  const { isMockMode } = useMock();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -63,6 +66,18 @@ export const BeatDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+
+    if (isMockMode) {
+      const mock = mockBeatDetails[Number(id)];
+      if (mock) {
+        setBeatDetails(mock);
+        document.title = mock.title;
+      } else {
+        setError('Beat not found in demo mode.');
+      }
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       setLoading(true);
@@ -90,13 +105,25 @@ export const BeatDetailsPage: React.FC = () => {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, isMockMode]);
 
   const handleAddToCart = async () => {
     if (!selectedLicense) {
       alert('Please select a license.');
       return;
     }
+
+    if (isMockMode) {
+      if (!beatDetails) return;
+      addToMockCart(
+        { ...beatDetails, authors: beatDetails.authors ?? [] },
+        { id: selectedLicense.id, name: selectedLicense.name, price: selectedLicense.price }
+      );
+      setSuccessMessage('Added to cart (demo)');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');

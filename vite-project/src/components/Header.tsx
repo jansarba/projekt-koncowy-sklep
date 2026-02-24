@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingCartIcon, CalculatorIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import { usePagination } from '../contexts/PaginationContext';
+import { useMock } from '../contexts/MockContext';
+import { MOCK_USER } from '../mockData';
 
 interface JwtPayload {
   exp: number;
@@ -13,12 +15,20 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { resetToFirstPage } = usePagination();
+  const { isMockMode } = useMock();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (isMockMode) {
+      setIsLoggedIn(true);
+      setUserName(MOCK_USER.name);
+      setIsAdmin(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -43,7 +53,7 @@ export const Header: React.FC = () => {
     } else {
       setIsLoggedIn(false);
     }
-  }, [location.pathname]); // Re-check on navigation
+  }, [location.pathname, isMockMode]); // Re-check on navigation
 
   const handleLogout = () => {
     localStorage.removeItem('token');

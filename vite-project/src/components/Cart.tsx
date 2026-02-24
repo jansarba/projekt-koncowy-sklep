@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CartItem from './CartItem';
+import { useMock } from '../contexts/MockContext';
+import { getMockCart, removeFromMockCart, placeMockOrder, type MockCartItem } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -39,6 +41,7 @@ type DiscountCode = {
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
+  const { isMockMode } = useMock();
   const [cartItems, setCartItems] = useState<CartItemType[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
   const [discountCode, setDiscountCode] = useState<string>('');
@@ -46,7 +49,17 @@ const Cart: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [discountApplied, setDiscountApplied] = useState<boolean>(false);
 
+  // --- Mock mode cart ---
+  const [mockItems, setMockItems] = useState<MockCartItem[]>([]);
+
   useEffect(() => {
+    if (isMockMode) {
+      const items = getMockCart();
+      setMockItems(items);
+      setTotalPrice(items.reduce((sum, i) => sum + i.license_price, 0));
+      return;
+    }
+
     const fetchLicenses = async () => {
       try {
         const response = await axios.get<License[]>(`${baseURL}/api/licenses`);
@@ -57,7 +70,7 @@ const Cart: React.FC = () => {
       }
     };
     fetchLicenses();
-  }, []);
+  }, [isMockMode]);
 
   const calculateTotalPrice = (items: CartItemType[]) => {
     const total = items.reduce((acc, item) => acc + (item.license_price || 0), 0);
@@ -66,6 +79,7 @@ const Cart: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isMockMode) return;
     if (!licenses.length) return;
 
     const fetchCartItems = async () => {
@@ -109,9 +123,16 @@ const Cart: React.FC = () => {
       }
     };
     fetchCartItems();
-  }, [licenses]);
+  }, [licenses, isMockMode]);
 
   const handleRemoveItem = async (cartId: number) => {
+    if (isMockMode) {
+      const updated = removeFromMockCart(cartId);
+      setMockItems(updated);
+      setTotalPrice(updated.reduce((sum, i) => sum + i.license_price, 0));
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       setError('You must be logged in to modify your cart');
@@ -131,6 +152,12 @@ const Cart: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (isMockMode) {
+      const order = placeMockOrder();
+      navigate(`/order/${order.id}`);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       setError('You must be logged in to place an order');
@@ -175,34 +202,37 @@ const Cart: React.FC = () => {
     }
   };
 
+  const displayItems = isMockMode ? mockItems : cartItems;
+  const showCart = isMockMode || localStorage.getItem('token');
+
   return (
     <div className="cart-container">
       {error && <p className="error-message">{error}</p>}
-      {localStorage.getItem('token') && (
+      {showCart && (
         <>
           <h1>Twój koszyk</h1>
-          {cartItems.length === 0 ? (
+          {displayItems.length === 0 ? (
             <p>Twój koszyk jest pusty.</p>
           ) : (
             <>
               <div className="cart-items">
-                {cartItems.map((item) => (
+                {displayItems.map((item) => (
                   <CartItem
                     key={item.cart_id}
                     cart_id={item.cart_id}
-                    beat_title={item.beat_title}
+                    beat_title={isMockMode ? (item as MockCartItem).beat_title : (item as CartItemType).beat_title}
                     bpm={item.bpm}
                     musical_key={item.musical_key}
                     image_url={item.image_url}
-                    license_name={item.license_name}
-                    license_price={item.license_price || 0}
+                    license_name={isMockMode ? (item as MockCartItem).license_name : (item as CartItemType).license_name}
+                    license_price={isMockMode ? (item as MockCartItem).license_price : ((item as CartItemType).license_price || 0)}
                     onRemove={handleRemoveItem}
                   />
                 ))}
               </div>
               <div className="order-summary">
                 <p>Total: ${totalPrice.toFixed(2)}</p>
-                {!discountApplied && (
+                {!discountApplied && !isMockMode && (
                   <>
                     <input
                       type="text"
