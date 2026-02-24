@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useMock } from '../contexts/MockContext';
+import { getMockOrder, payMockOrder } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,11 +28,32 @@ interface OrderResponse {
 
 const OrderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { isMockMode } = useMock();
   const [order, setOrder] = useState<OrderResponse | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (isMockMode) {
+      const mock = getMockOrder(Number(id));
+      if (mock) {
+        setOrder({
+          order: { id: mock.id, total_price: mock.total_price, is_paid: mock.is_paid },
+          items: mock.items.map((i) => ({
+            cart_id: i.cart_id,
+            title: i.beat_title,
+            image_url: i.image_url,
+            license_name: i.license_name,
+            bpm: i.bpm,
+            musical_key: i.musical_key,
+          })),
+        });
+      } else {
+        setError('No demo order found.');
+      }
+      return;
+    }
+
     const fetchOrderDetails = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -48,16 +71,29 @@ const OrderDetails: React.FC = () => {
       }
     };
     if (id) fetchOrderDetails();
-  }, [id]);
+  }, [id, isMockMode]);
 
   const handlePayment = async () => {
+    if (isMockMode) {
+      setLoading(true);
+      // symuluj opóźnienie płatności
+      await new Promise((r) => setTimeout(r, 500));
+      const paid = payMockOrder(Number(id));
+      if (paid) {
+        setOrder((prev) => prev ? { ...prev, order: { ...prev.order, is_paid: true } } : null);
+        alert('Payment successful! (demo mode)');
+      }
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token || !id) return;
     setLoading(true);
     try {
       await axios.post(`${baseURL}/api/orders/${id}/payment`, { paymentStatus: 'success' }, { headers: { Authorization: `Bearer ${token}` } });
       await axios.post(`${baseURL}/api/orders/${id}/send-files`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      
+
       setOrder(prev => prev ? { ...prev, order: { ...prev.order, is_paid: true } } : null);
       alert('Payment successful! Your files have been sent to your email.');
     } catch (err) {
@@ -96,7 +132,7 @@ const OrderDetails: React.FC = () => {
 
       {!order.order.is_paid && (
         <div className="mt-6">
-          <button onClick={handlePayment} disabled={loading} className="p-3 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:bg-gray-500">
+          <button onClick={handlePayment} disabled={loading} className="place-order-btn">
             {loading ? 'Processing...' : 'Pay and Receive Files'}
           </button>
         </div>

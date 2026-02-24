@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useMock } from '../contexts/MockContext';
+import { getMockOrders } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,8 +17,14 @@ export const LedgerPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
+  const { isMockMode } = useMock();
 
   useEffect(() => {
+    if (isMockMode) {
+      setOrders(getMockOrders());
+      return;
+    }
+
     const fetchOrders = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -34,7 +42,7 @@ export const LedgerPage: React.FC = () => {
       }
     };
     fetchOrders();
-  }, []);
+  }, [isMockMode]);
 
   return (
     <div className="ledger-page pb-44">
