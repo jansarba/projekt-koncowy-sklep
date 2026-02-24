@@ -3,6 +3,7 @@ import Select, { MultiValue, SingleValue } from 'react-select';
 import { Range } from 'react-range';
 import axios from 'axios';
 import { useFilters } from '../contexts/FiltersContext';
+import { useMock } from '../contexts/MockContext';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -36,6 +37,7 @@ export const Filters: React.FC = () => {
   const { filters, dispatch } = useFilters();
   const [bpmRange, setBpmRange] = useState(filters.bpmRange);
   const [tags, setTags] = useState<OptionType[]>([]);
+  const { isMockMode, checkingBackend } = useMock();
 
   // State for individual parts of the musical key
   const [selectedKey, setSelectedKey] = useState<string>('');
@@ -43,6 +45,11 @@ export const Filters: React.FC = () => {
   const [selectedAlteration, setSelectedAlteration] = useState<string>('');
 
   useEffect(() => {
+    if (checkingBackend) return;
+    if (isMockMode) {
+      setTags([{ value: 'trap', label: 'trap' }, { value: 'dark', label: 'dark' }, { value: 'chill', label: 'chill' }, { value: 'lofi', label: 'lofi' }]);
+      return;
+    }
     const fetchTags = async () => {
       try {
         const response = await axios.get<OptionType[]>(`${baseURL}/api/tags`);
@@ -58,7 +65,7 @@ export const Filters: React.FC = () => {
       }
     };
     fetchTags();
-  }, []);
+  }, [isMockMode, checkingBackend]);
 
   useEffect(() => {
     const musicalKey = `${selectedKey}${selectedAlteration} ${selectedScale}`.trim();
