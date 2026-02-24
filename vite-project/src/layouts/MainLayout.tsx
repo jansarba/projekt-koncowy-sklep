@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
-import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
 import { useSidebar } from '../contexts/SidebarContext';
 
@@ -21,7 +20,6 @@ const MainLayout = () => {
           <Outlet />
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
