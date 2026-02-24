@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { useMock } from '../contexts/MockContext';
+import { mockLicenses } from '../mockData';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,8 +26,16 @@ export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selected, setSelected] = useState<License | null>(null);
   const [isMp3Only, setIsMp3Only] = useState<boolean>(false);
+  const { isMockMode } = useMock();
 
   useEffect(() => {
+    if (isMockMode) {
+      setLicenses(mockLicenses);
+      setSelected(mockLicenses[0]);
+      setSelectedLicense(mockLicenses[0]);
+      return;
+    }
+
     const fetchLicenseData = async () => {
       if (!beatId) return;
 
@@ -57,7 +67,8 @@ export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
     };
 
     fetchLicenseData();
-  }, [beatId, setSelectedLicense]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beatId, isMockMode]);
 
   const handleSelectionChange = (license: License) => {
     setSelected(license);
