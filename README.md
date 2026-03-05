@@ -32,6 +32,32 @@ Currently, the project is hosted using free tiers of:
 The database schema is as follows:
 ![schema](schemat.png)
 
+## Frontend Design
+
+thumpingbass is a robust, no-nonsense e-shop for musicians escaping Beatstars hegemony.
+
+### Color Palette
+
+The UI uses a **warm dark theme**. Background shades run from near-black to dark charcoal with a deliberate brown undertone (`#0d0c0c` → `#4e4a4a`), which reads warmer and more intimate than the cool or neutral greys typical of music platforms. The accent scale completes the warmth with three analogous stops:
+
+| Role | Color | Hex |
+|---|---|---|
+| Primary CTA / play buttons | Terracotta red | `#A04747` |
+| Borders / hover state | Amber | `#D8A25E` |
+| Highlight / detail | Warm gold | `#EEDF7A` |
+
+The progression from terracotta through amber to gold keeps the palette cohesive and avoids any cold or clinical feel.
+
+### Layout
+
+The main browse view is a **responsive two-column layout**: a collapsible filter sidebar (25 % width on desktop, stacked full-width on mobile) sits beside a product card grid. The sidebar turns `sticky` below the header on desktop so filters remain visible while scrolling. Auxiliary pages — login, cart, order history — drop the sidebar entirely and render in a single centered column.
+
+### Key UI Patterns
+
+- **Glassmorphism header** — a semi-transparent, backdrop-blurred bar with a hairline border keeps navigation visible without visually dominating content.
+- **Persistent media footer** — a fixed player bar lets users preview beats while browsing, with a wavesurfer.js waveform replacing a plain progress bar.
+- **Card hover choreography** — cover images scale up, a gradient scrim fades in, and a circular terracotta play button appears, all driven by Tailwind's `group` variant for a polished, zero-JS interaction.
+
 ## Setup
 
 To run the project locally, execute the following commands from the root directory:
