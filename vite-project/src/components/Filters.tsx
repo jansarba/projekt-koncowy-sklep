@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Select, { MultiValue, SingleValue } from 'react-select';
+import Select, { MultiValue, SingleValue, StylesConfig } from 'react-select';
 import { Range } from 'react-range';
 import axios from 'axios';
 import { useFilters } from '../contexts/FiltersContext';
@@ -23,15 +23,85 @@ const keyOptions: OptionType[] = [
 ];
 
 const scaleOptions: OptionType[] = [
-  { value: 'major', label: 'Major' },
-  { value: 'minor', label: 'Minor' },
+  { value: 'major', label: 'Dur' },
+  { value: 'minor', label: 'Moll' },
 ];
 
 const alterOptions: OptionType[] = [
-  { value: '', label: 'Natural' },
-  { value: '#', label: 'Sharp (#)' },
-  { value: 'b', label: 'Flat (b)' },
+  { value: '', label: 'Nat.' },
+  { value: '#', label: '#' },
+  { value: 'b', label: 'b' },
 ];
+
+const darkSelectStyles: StylesConfig<OptionType, boolean> = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: '#1a1919',
+    borderColor: state.isFocused ? '#A04747' : '#3B3737',
+    borderRadius: '0.5rem',
+    minHeight: '38px',
+    boxShadow: 'none',
+    '&:hover': { borderColor: '#4e4a4a' },
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: '#1a1919',
+    border: '1px solid #3B3737',
+    borderRadius: '0.5rem',
+    overflow: 'hidden',
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isSelected ? '#A04747' : state.isFocused ? '#272525' : 'transparent',
+    color: '#F1F5F9',
+    fontSize: '0.875rem',
+    '&:active': { backgroundColor: '#343131' },
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: '#F1F5F9',
+    fontSize: '0.875rem',
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: '#343131',
+    borderRadius: '0.375rem',
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: '#F1F5F9',
+    fontSize: '0.75rem',
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: '#C0C4C7',
+    '&:hover': { backgroundColor: '#A04747', color: '#F1F5F9' },
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: '#4e4a4a',
+    fontSize: '0.875rem',
+  }),
+  input: (base) => ({
+    ...base,
+    color: '#F1F5F9',
+    fontSize: '0.875rem',
+  }),
+  indicatorSeparator: (base) => ({
+    ...base,
+    backgroundColor: '#3B3737',
+  }),
+  dropdownIndicator: (base) => ({
+    ...base,
+    color: '#4e4a4a',
+    '&:hover': { color: '#C0C4C7' },
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: '#4e4a4a',
+    '&:hover': { color: '#C0C4C7' },
+  }),
+};
 
 export const Filters: React.FC = () => {
   const { filters, dispatch } = useFilters();
@@ -39,7 +109,6 @@ export const Filters: React.FC = () => {
   const [tags, setTags] = useState<OptionType[]>([]);
   const { isMockMode, checkingBackend } = useMock();
 
-  // State for individual parts of the musical key
   const [selectedKey, setSelectedKey] = useState<string>('');
   const [selectedScale, setSelectedScale] = useState<string>('');
   const [selectedAlteration, setSelectedAlteration] = useState<string>('');
@@ -107,43 +176,80 @@ export const Filters: React.FC = () => {
     setBpmRange([10, 300]);
   };
 
+  const trackFillPercent = (value: number) => ((value - 10) / (300 - 10)) * 100;
+
   return (
-    <div className="h-full bg-dark rounded-md text-white">
-      <div className="h-full overflow-y-auto p-4">
-        <div className="flex justify-between items-center mb-4 gap-2">
-          <h2 className="text-lg font-bold">Filters</h2>
-          <button onClick={handleResetFilters} className="px-2 py-2 bg-darkes hover:text-texthover transition-colors text-text rounded-md">
+    <div className="h-full bg-dark rounded-lg text-text">
+      <div className="h-full overflow-y-auto p-4" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="font-bold text-lg tracking-wider">FILTRY</h2>
+          <button
+            onClick={handleResetFilters}
+            className="text-xs text-lightest hover:text-text border border-light/30 hover:border-lightest px-2.5 py-1 rounded-md transition-all duration-200"
+          >
             Resetuj
           </button>
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Szukaj po tytule</label>
-          <input type="text" value={filters.title} onChange={handleTitleChange} className="w-full p-2 border border-gray-500 rounded-md bg-darker text-text" />
+        <div className="mb-5">
+          <label className="block mb-1.5 text-xs text-texthover uppercase tracking-wider">Szukaj po tytule</label>
+          <input
+            type="text"
+            value={filters.title}
+            onChange={handleTitleChange}
+            placeholder="Wpisz tytuł..."
+            className="w-full px-3 py-2 border border-light/30 rounded-lg bg-darker text-text text-sm placeholder:text-lightest focus:outline-none focus:border-secondary transition-colors duration-200"
+          />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Tags</label>
-          <Select isMulti options={tags} value={tags.filter((tag) => filters.tags.includes(tag.value))} onChange={handleTagsChange} className="text-black" />
+        <div className="mb-5">
+          <label className="block mb-1.5 text-xs text-texthover uppercase tracking-wider">Tagi</label>
+          <Select<OptionType, true>
+            isMulti
+            options={tags}
+            value={tags.filter((tag) => filters.tags.includes(tag.value))}
+            onChange={handleTagsChange}
+            styles={darkSelectStyles}
+            placeholder="Wybierz tagi..."
+          />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Key</label>
-          <Select options={keyOptions} onChange={handleKeyChange} isClearable className="text-black" placeholder="Select a key" />
+        <div className="mb-5">
+          <label className="block mb-1.5 text-xs text-texthover uppercase tracking-wider">Tonacja</label>
+          <Select<OptionType, false>
+            options={keyOptions}
+            onChange={handleKeyChange}
+            isClearable
+            styles={darkSelectStyles}
+            placeholder="Wybierz tonację"
+          />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Alteration</label>
-          <Select options={alterOptions} onChange={handleAlterationChange} isClearable className="text-black" placeholder="Select alteration" />
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div>
+            <label className="block mb-1.5 text-xs text-texthover uppercase tracking-wider">Alteracja</label>
+            <Select<OptionType, false>
+              options={alterOptions}
+              onChange={handleAlterationChange}
+              isClearable
+              styles={darkSelectStyles}
+              placeholder="—"
+            />
+          </div>
+          <div>
+            <label className="block mb-1.5 text-xs text-texthover uppercase tracking-wider">Skala</label>
+            <Select<OptionType, false>
+              options={scaleOptions}
+              onChange={handleScaleChange}
+              isClearable
+              styles={darkSelectStyles}
+              placeholder="—"
+            />
+          </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2">Scale</label>
-          <Select options={scaleOptions} onChange={handleScaleChange} isClearable className="text-black" placeholder="Select scale" />
-        </div>
-
-        <div className="mb-4">
-          <label className="block mb-2">BPM Range</label>
+        <div className="mb-5">
+          <label className="block mb-3 text-xs text-texthover uppercase tracking-wider">Zakres BPM</label>
           <Range
             step={1}
             min={10}
@@ -151,13 +257,28 @@ export const Filters: React.FC = () => {
             values={bpmRange}
             onChange={handleBpmChange}
             renderTrack={({ props, children }) => (
-              <div {...props} className="h-2 bg-gray-600 rounded-md">
+              <div {...props} className="h-1.5 bg-lighter/30 rounded-full relative">
+                <div
+                  className="absolute h-full bg-secondary rounded-full"
+                  style={{
+                    left: `${trackFillPercent(bpmRange[0])}%`,
+                    width: `${trackFillPercent(bpmRange[1]) - trackFillPercent(bpmRange[0])}%`,
+                  }}
+                />
                 {children}
               </div>
             )}
-            renderThumb={({ props }) => <div {...props} className="w-4 h-4 bg-white rounded-full border border-gray-500" />}
+            renderThumb={({ props }) => (
+              <div
+                {...props}
+                className="w-4 h-4 bg-text rounded-full shadow-md border-2 border-secondary focus:outline-none"
+              />
+            )}
           />
-          <div className="mt-2 text-sm">{`Range: ${bpmRange[0]} - ${bpmRange[1]}`}</div>
+          <div className="mt-2 flex justify-between text-xs text-lightest">
+            <span>{bpmRange[0]} BPM</span>
+            <span>{bpmRange[1]} BPM</span>
+          </div>
         </div>
       </div>
       <div className="hidden lg:block min-h-48"></div>
