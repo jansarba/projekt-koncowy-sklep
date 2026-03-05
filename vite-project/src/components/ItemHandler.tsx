@@ -13,6 +13,23 @@ type FetchBeatsResponse = {
   totalPages: number;
 };
 
+const SkeletonCard: React.FC = () => (
+  <div className="bg-dark rounded-xl overflow-hidden animate-pulse">
+    <div className="w-full h-48 bg-light/30" />
+    <div className="p-3 space-y-2">
+      <div className="h-4 bg-light/30 rounded w-3/4" />
+      <div className="flex gap-2">
+        <div className="h-5 bg-light/20 rounded-full w-12" />
+        <div className="h-5 bg-light/20 rounded-full w-16" />
+      </div>
+      <div className="flex gap-1">
+        <div className="h-4 bg-light/10 rounded w-10" />
+        <div className="h-4 bg-light/10 rounded w-8" />
+      </div>
+    </div>
+  </div>
+);
+
 export const ItemHandler: React.FC = () => {
   const [items, setItems] = useState<ItemProps[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,21 +122,46 @@ export const ItemHandler: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       {loading ? (
-        <p>Loading...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {items.length > 0 ? items.map((item) => <Item key={item.id} {...item} />) : <p>Nie ma jeszcze takich bitów.</p>}
+            {items.length > 0 ? (
+              items.map((item) => <Item key={item.id} {...item} />)
+            ) : (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-lightest">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+                <p className="text-lg">Nie ma jeszcze takich bitów.</p>
+              </div>
+            )}
           </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-center mt-4 gap-6">
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 bg-secondary text-white disabled:bg-lightest w-[6rem]">
-                Previous
+            <div className="flex justify-center items-center mt-8 gap-4">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-dark hover:bg-light text-text disabled:bg-dark disabled:text-lightest rounded-lg transition-all duration-200 text-sm font-medium"
+              >
+                Poprzednia
               </button>
-              <span className="self-center">{`${currentPage} / ${totalPages}`}</span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="px-4 py-2 bg-secondary text-white disabled:bg-lightest w-[6rem]">
-                Next
+              <div className="flex items-center gap-1 text-sm text-texthover">
+                <span className="text-text font-medium">{currentPage}</span>
+                <span>/</span>
+                <span>{totalPages}</span>
+              </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-dark hover:bg-light text-text disabled:bg-dark disabled:text-lightest rounded-lg transition-all duration-200 text-sm font-medium"
+              >
+                Następna
               </button>
             </div>
           )}

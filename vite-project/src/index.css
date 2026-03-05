@@ -13,4 +13,16 @@ body {
     100% {
       transform: translateX(-100%);
     }
-  }
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+*, *::before, *::after {
+    scroll-behavior: smooth;
+}

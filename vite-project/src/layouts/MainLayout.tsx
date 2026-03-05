@@ -3,7 +3,6 @@ import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { useSidebar } from '../contexts/SidebarContext';
 
-
 const MainLayout = () => {
   const { isSidebarVisible } = useSidebar();
 
@@ -16,7 +15,7 @@ const MainLayout = () => {
             <Sidebar />
           </div>
         )}
-        <div className="flex flex-col text-text p-4 overflow-hidden w-full pb-48">
+        <div className="flex flex-col text-text overflow-hidden w-full pb-48">
           <Outlet />
         </div>
       </div>

@@ -12,7 +12,7 @@ export type ItemProps = {
   mp3_url: string;
 };
 
-export const Item: React.FC<ItemProps> = ({ id, title, bpm, musical_key, image_url, mp3_url }) => {
+export const Item: React.FC<ItemProps> = ({ id, title, bpm, musical_key, tags, image_url, mp3_url }) => {
   const { setCurrentBeatUrl, setCurrentBeatImage, setCurrentBeatName, setCurrentBeatId } = useMusicPlayer();
   const navigate = useNavigate();
 
@@ -29,17 +29,49 @@ export const Item: React.FC<ItemProps> = ({ id, title, bpm, musical_key, image_u
   };
 
   return (
-    <div className="relative bg-dark text-slate-100 p-4 rounded-lg group max-w-none hover:cursor-pointer" onClick={handleNavigate}>
-      <h2 className="font-bold h-14">{title}</h2>
-      <div className="relative">
-        <img src={image_url} alt={title} className="rounded-md w-full h-48 object-cover aspect-square" />
-        <button onClick={handlePlay} className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-md text-white text-lg font-bold">
-          ▶ Play
+    <div
+      className="relative bg-dark text-text rounded-xl overflow-hidden group hover:bg-light transition-all duration-300 hover:shadow-lg hover:shadow-black/30 cursor-pointer"
+      onClick={handleNavigate}
+    >
+      <div className="relative overflow-hidden">
+        <img
+          src={image_url}
+          alt={title}
+          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <button
+          onClick={handlePlay}
+          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+        >
+          <div className="w-14 h-14 rounded-full bg-secondary/90 backdrop-blur-sm flex items-center justify-center transform scale-75 group-hover:scale-100 transition-transform duration-300 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white ml-1" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7L8 5z" />
+            </svg>
+          </div>
         </button>
       </div>
-      <div className="flex justify-between items-center mt-2 text-sm">
-        <p className="text-slate-400">{musical_key}</p>
-        <p className="text-slate-400">{bpm} BPM</p>
+
+      <div className="p-3">
+        <h2 className="font-semibold text-sm truncate mb-2">{title}</h2>
+
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-darkes text-texthover">{musical_key}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-darkes text-texthover">{bpm} BPM</span>
+        </div>
+
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 3).map((tag) => (
+              <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-darkest text-lightest">
+                #{tag}
+              </span>
+            ))}
+            {tags.length > 3 && (
+              <span className="text-[10px] px-1.5 py-0.5 text-lightest">+{tags.length - 3}</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
