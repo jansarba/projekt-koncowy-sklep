@@ -19,9 +19,10 @@ interface BeatData {
 
 interface LicensesProps {
   setSelectedLicense: (license: License | null) => void;
+  onLicensesLoaded?: (licenses: License[]) => void;
 }
 
-export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
+export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense, onLicensesLoaded }) => {
   const { id: beatId } = useParams<{ id: string }>();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [selected, setSelected] = useState<License | null>(null);
@@ -33,6 +34,7 @@ export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
       setLicenses(mockLicenses);
       setSelected(mockLicenses[0]);
       setSelectedLicense(mockLicenses[0]);
+      onLicensesLoaded?.(mockLicenses);
       return;
     }
 
@@ -48,6 +50,7 @@ export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
         if (licensesResponse.ok) {
           const licensesData: License[] = await licensesResponse.json();
           setLicenses(licensesData);
+          onLicensesLoaded?.(licensesData);
           if (licensesData.length > 0) {
             const defaultLicense = licensesData[0];
             setSelected(defaultLicense);
@@ -85,15 +88,15 @@ export const Licenses: React.FC<LicensesProps> = ({ setSelectedLicense }) => {
       <div className="mx-auto max-w-xs min-w-64">
         <RadioGroup value={selected} onChange={handleSelectionChange} aria-label="Beat License" className="space-y-2">
           {licenses.map((license) => (
-            <Radio key={license.id} value={license} className="group relative flex cursor-pointer rounded-lg bg-white/5 py-3 px-5 text-white shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-white/10">
+            <Radio key={license.id} value={license} className="group relative flex cursor-pointer rounded-lg bg-dark py-3 px-5 text-text shadow-md transition focus:outline-none data-[focus]:outline-1 data-[focus]:outline-secondary data-[checked]:bg-light">
               <div className="flex w-full items-center justify-between">
                 <div className="text-sm/6">
-                  <p className="font-semibold text-white">{license.name}</p>
-                  <div className="flex gap-2 text-white/50">
+                  <p className="font-semibold text-text">{license.name}</p>
+                  <div className="flex gap-2 text-texthover">
                     <div>{license.price}</div>
                   </div>
                 </div>
-                <CheckCircleIcon className="size-6 fill-white opacity-0 transition group-data-[checked]:opacity-100" />
+                <CheckCircleIcon className="size-6 fill-text opacity-0 transition group-data-[checked]:opacity-100" />
               </div>
             </Radio>
           ))}

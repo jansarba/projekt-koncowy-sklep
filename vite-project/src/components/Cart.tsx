@@ -66,7 +66,7 @@ const Cart: React.FC = () => {
         setLicenses(response.data);
       } catch (err) {
         console.error('Error fetching licenses:', err);
-        setError('Failed to fetch license information');
+        setError('Nie udało się pobrać informacji o licencjach');
       }
     };
     fetchLicenses();
@@ -119,7 +119,7 @@ const Cart: React.FC = () => {
         calculateTotalPrice(itemsWithDetails);
       } catch (err) {
         console.error('Error fetching cart items:', err);
-        setError('Failed to fetch cart items');
+        setError('Nie udało się pobrać zawartości koszyka');
       }
     };
     fetchCartItems();
@@ -135,7 +135,7 @@ const Cart: React.FC = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('You must be logged in to modify your cart');
+      setError('Musisz być zalogowany, aby zmodyfikować koszyk');
       return;
     }
     try {
@@ -147,7 +147,7 @@ const Cart: React.FC = () => {
       calculateTotalPrice(updatedCart);
     } catch (err) {
       console.error('Error removing item:', err);
-      setError('Failed to remove item');
+      setError('Nie udało się usunąć pozycji');
     }
   };
 
@@ -160,7 +160,7 @@ const Cart: React.FC = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('You must be logged in to place an order');
+      setError('Musisz być zalogowany, aby złożyć zamówienie');
       return;
     }
     try {
@@ -174,7 +174,7 @@ const Cart: React.FC = () => {
       }
     } catch (err) {
       console.error('Error placing order:', err);
-      setError('Failed to place order');
+      setError('Nie udało się złożyć zamówienia');
     }
   };
 
@@ -184,14 +184,14 @@ const Cart: React.FC = () => {
       return response.data;
     } catch (err) {
       console.error('Invalid or expired discount code:', err);
-      setError('Invalid or expired discount code');
+      setError('Nieprawidłowy lub wygasły kod rabatowy');
       return null;
     }
   };
 
   const applyDiscount = async () => {
     if (!discountCode) {
-      setError('Please enter a discount code.');
+      setError('Proszę wpisać kod rabatowy.');
       return;
     }
     const discount = await validateDiscountCode(discountCode);
@@ -206,16 +206,16 @@ const Cart: React.FC = () => {
   const showCart = isMockMode || localStorage.getItem('token');
 
   return (
-    <div className="cart-container">
-      {error && <p className="error-message">{error}</p>}
+    <div className="p-6 pb-48 text-text">
+      {error && <p className="text-secondary bg-secondary/10 border border-secondary/30 p-3 rounded mb-4">{error}</p>}
       {showCart && (
         <>
-          <h1>Twój koszyk</h1>
+          <h1 className="text-2xl font-bold mb-4">Twój koszyk</h1>
           {displayItems.length === 0 ? (
-            <p>Twój koszyk jest pusty.</p>
+            <p className="text-texthover">Twój koszyk jest pusty.</p>
           ) : (
             <>
-              <div className="cart-items">
+              <div className="divide-y divide-light/20 mb-6 bg-dark rounded-xl overflow-hidden">
                 {displayItems.map((item) => (
                   <CartItem
                     key={item.cart_id}
@@ -230,25 +230,25 @@ const Cart: React.FC = () => {
                   />
                 ))}
               </div>
-              <div className="order-summary">
-                <p>Total: ${totalPrice.toFixed(2)}</p>
+              <div className="mt-6 bg-dark rounded-xl p-4 space-y-3">
+                <p className="text-lg font-semibold">Łącznie: {totalPrice.toFixed(2)} zł</p>
                 {!discountApplied && !isMockMode && (
                   <>
                     <input
                       type="text"
-                      placeholder="Enter discount code"
+                      placeholder="Wpisz kod rabatowy"
                       value={discountCode}
                       onChange={(event) => setDiscountCode(event.target.value)}
-                      className="text-black"
+                      className="w-full p-2 bg-darkest border border-light/30 rounded text-text placeholder:text-lightest focus:outline-none focus:border-secondary"
                     />
-                    <button className="apply-discount-btn" onClick={applyDiscount}>
-                      Apply Discount
+                    <button className="px-4 py-2 bg-light text-text rounded hover:bg-lighter transition-colors" onClick={applyDiscount}>
+                      Zastosuj rabat
                     </button>
                   </>
                 )}
-                {discountApplied && <p>Discount applied successfully!</p>}
-                <button className="place-order-btn" onClick={handlePlaceOrder}>
-                  Place Order
+                {discountApplied && <p className="text-green-400">Rabat zastosowany!</p>}
+                <button className="w-full p-3 bg-secondary text-white rounded hover:bg-secondary/80 transition-colors" onClick={handlePlaceOrder}>
+                  Złóż zamówienie
                 </button>
               </div>
             </>
