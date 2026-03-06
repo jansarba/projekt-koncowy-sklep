@@ -6,6 +6,11 @@ body {
     @apply bg-darkest;
 }
 
+@keyframes lineExpand {
+  0%, 100% { transform: scaleY(1); opacity: 0.5; }
+  50% { transform: scaleY(8); opacity: 0.9; }
+}
+
 @keyframes scroll-text {
     0% {
       transform: translateX(0%);

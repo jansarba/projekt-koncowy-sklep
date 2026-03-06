@@ -18,12 +18,23 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({ audioUrl, isPlaying, 
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [lineVisible, setLineVisible] = useState(true);
+
+  useEffect(() => {
+    if (isLoaded) {
+      const t = setTimeout(() => setLineVisible(false), 700);
+      return () => clearTimeout(t);
+    }
+  }, [isLoaded]);
 
   useEffect(() => {
     const customNavigator = navigator as NavigatorWithAudioSession;
     if (customNavigator.audioSession) {
       customNavigator.audioSession.type = 'playback';
     }
+
+    setIsLoaded(false);
+    setLineVisible(true);
 
     if (!waveformRef.current) return;
 
@@ -73,13 +84,39 @@ const WaveformOverlay: React.FC<WaveformOverlayProps> = ({ audioUrl, isPlaying, 
   }, [isPlaying]);
 
   return (
-    <div
-      className="w-full z-10"
-      ref={waveformRef}
-      style={{
-        filter: isLoaded ? 'drop-shadow(0 0 15px rgba(160, 71, 71, 0.3))' : 'none',
-      }}
-    />
+    <div className="relative w-full" style={{ height: 75 }}>
+      {lineVisible && (
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+          style={{
+            transition: 'opacity 0.6s ease',
+            opacity: isLoaded ? 0 : 1,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              height: 2,
+              background: 'white',
+              filter: 'blur(4px)',
+              transformOrigin: 'center',
+              transition: 'transform 0.6s ease',
+              transform: isLoaded ? 'scaleY(0)' : 'scaleY(1)',
+              animation: isLoaded ? 'none' : 'lineExpand 1.2s ease-in-out infinite',
+            }}
+          />
+        </div>
+      )}
+      <div
+        className="w-full z-10"
+        ref={waveformRef}
+        style={{
+          filter: isLoaded ? 'drop-shadow(0 0 15px rgba(160, 71, 71, 0.3))' : 'none',
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+        }}
+      />
+    </div>
   );
 };
 
