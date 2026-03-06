@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
-import { Header } from '../components/Header';
 import { useSidebar } from '../contexts/SidebarContext';
 
 const MainLayout = () => {
@@ -8,7 +7,6 @@ const MainLayout = () => {
 
   return (
     <div className="max-w-full min-h-screen overflow-x-clip bg-darker scrollbar-hide">
-      <Header />
       <div className="flex flex-col sm:flex-row w-full">
         {isSidebarVisible && (
           <div className="w-full sm:w-3/12 sm:block">
