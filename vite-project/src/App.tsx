@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { SidebarProvider } from './contexts/SidebarContext';
 import MainLayout from './layouts/MainLayout';
 import NoSidebarLayout from './layouts/NoSidebarLayout';
+import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ItemsPresenter } from './components/ItemPresenter';
 import { BeatDetailsPage } from './pages/BeatDetailsPage';
@@ -11,12 +12,14 @@ import CartPage from './pages/CartPage';
 import OrderDetails from './pages/OrderPage';
 import { LedgerPage } from './pages/LedgerPage';
 import BeatUploadPage from './pages/BeatUploadPage';
+import MyBeatsPage from './pages/MyBeatsPage';
 import './index.css';
 
 const App: React.FC = () => {
   return (
     <SidebarProvider>
       <Router>
+        <Header />
         <Routes>
           {/* Routes with Sidebar */}
           <Route element={<MainLayout />}>
@@ -32,6 +35,7 @@ const App: React.FC = () => {
             <Route path="/order/:id" element={<OrderDetails />} />
             <Route path="/ledger" element={<LedgerPage />} />
             <Route path="/upload" element={<BeatUploadPage />} />
+            <Route path="/my-beats" element={<MyBeatsPage />} />
           </Route>
         </Routes>
         <Footer />
