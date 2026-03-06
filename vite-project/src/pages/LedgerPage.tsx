@@ -37,7 +37,7 @@ export const LedgerPage: React.FC = () => {
         });
         setOrders(response.data);
       } catch (err) {
-        setError('Failed to fetch orders.');
+        setError('Nie udało się pobrać zamówień.');
         console.error(err);
       }
     };
@@ -45,29 +45,29 @@ export const LedgerPage: React.FC = () => {
   }, [isMockMode]);
 
   return (
-    <div className="ledger-page pb-44">
+    <div className="p-6 pb-44 text-text">
       <h1 className="text-2xl font-bold mb-4">Historia zamówień</h1>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-secondary bg-secondary/10 border border-secondary/30 p-3 rounded mb-4">{error}</p>}
       <div className="orders-list space-y-4">
         {orders.length > 0 ? (
           orders.map((order) => (
             <div
               key={order.id}
-              className="order-item p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
+              className="order-item p-4 bg-dark rounded-lg cursor-pointer hover:bg-light transition-colors"
               onClick={() => navigate(`/order/${order.id}`)}
             >
               <div className="flex justify-between">
-                <span className="font-semibold">Order #{order.id}</span>
-                <span className={order.is_paid ? 'text-green-400' : 'text-yellow-400'}>{order.is_paid ? 'Paid' : 'Pending'}</span>
+                <span className="font-semibold">Zamówienie #{order.id}</span>
+                <span className={order.is_paid ? 'text-green-400' : 'text-yellow-400'}>{order.is_paid ? 'Opłacone' : 'Oczekujące'}</span>
               </div>
-              <div className="flex gap-4 mt-2 text-sm text-gray-400">
-                <span>Total: ${parseFloat(order.total_price).toFixed(2)}</span>
+              <div className="flex gap-4 mt-2 text-sm text-texthover">
+                <span>Łącznie: {parseFloat(order.total_price).toFixed(2)} zł</span>
                 <span>{new Date(order.created_at).toLocaleDateString()}</span>
               </div>
             </div>
           ))
         ) : (
-          <p>No orders found.</p>
+          <p className="text-texthover">Brak zamówień.</p>
         )}
       </div>
     </div>

@@ -28,6 +28,12 @@ export const MockProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     const checkBackend = async () => {
+      if (!baseURL) {
+        setBackendUnavailable(true);
+        setShowDialog(true);
+        setCheckingBackend(false);
+        return;
+      }
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 3000);

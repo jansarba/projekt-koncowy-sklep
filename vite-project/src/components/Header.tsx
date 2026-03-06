@@ -89,9 +89,15 @@ export const Header: React.FC = () => {
                 <span className="text-sm text-texthover">{userName}</span>
                 <button
                   onClick={handleLogout}
-                  className="text-sm text-texthover hover:text-text border border-lightest/40 px-3 py-1.5 rounded-lg transition-all duration-200 hover:border-texthover"
+                  className="text-sm text-white bg-secondary hover:bg-secondary/80 px-3 py-1.5 rounded-lg transition-all duration-200 focus:outline-none"
                 >
                   Wyloguj
+                </button>
+                <button
+                  onClick={() => navigate('/my-beats')}
+                  className="text-sm text-tertiary border border-tertiary hover:bg-tertiary/10 px-3 py-1.5 rounded-lg transition-all duration-200 focus:outline-none"
+                >
+                  Moje bity
                 </button>
               </>
             ) : (
@@ -142,7 +148,7 @@ export const Header: React.FC = () => {
               aria-label="Zamówienia"
             >
               <CalculatorIcon className="h-5 w-5" />
-              <span className="absolute top-full mt-2 hidden group-hover:block bg-darkest text-text text-xs px-2 py-1 rounded-lg whitespace-nowrap">
+              <span className="absolute top-full mt-2 hidden group-hover:block bg-darkest text-text text-xs px-2 py-1 rounded-lg whitespace-nowrap right-0">
                 Zamówienia
               </span>
             </button>

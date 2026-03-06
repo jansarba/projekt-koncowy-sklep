@@ -20,7 +20,7 @@ const CartItem: React.FC<CartItemProps> = ({
   onRemove,
 }) => {
   return (
-    <div className="flex items-center space-x-4 p-4 border-b">
+    <div className="flex items-center space-x-4 p-4 border-b border-light/20">
       <img
         src={image_url || '/default-image.jpg'}
         alt={beat_title}
@@ -31,14 +31,14 @@ const CartItem: React.FC<CartItemProps> = ({
         <p className="text-sm">
           {bpm} BPM | {musical_key}
         </p>
-        <p className="text-sm">License: {license_name}</p>
-        <p className="text-sm">Price: ${license_price.toFixed(2)}</p>
+        <p className="text-sm">Licencja: {license_name}</p>
+        <p className="text-sm">Cena: {license_price.toFixed(2)} zł</p>
       </div>
       <button
-        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+        className="bg-secondary text-white px-3 py-1 rounded hover:bg-secondary/80"
         onClick={() => onRemove(cart_id)}
       >
-        Remove
+        Usuń
       </button>
     </div>
   );
