@@ -61,7 +61,7 @@ const BeatUploadPage: React.FC = () => {
         setImageFile(resized);
       } catch (error) {
         console.error('Image resizing failed:', error);
-        alert('Failed to process image.');
+        alert('Nie udało się przetworzyć obrazu.');
       }
     }
   };
@@ -69,7 +69,7 @@ const BeatUploadPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !bpm || !musicalKey || !tags || !imageFile || !mp3File || !authorNames.trim()) {
-      alert('Please fill all required fields and upload files.');
+      alert('Wypełnij wszystkie wymagane pola i prześlij pliki.');
       return;
     }
 
@@ -93,35 +93,35 @@ const BeatUploadPage: React.FC = () => {
         body: formData,
       });
       if (response.ok) {
-        alert('Beat uploaded successfully!');
+        alert('Bit przesłany pomyślnie!');
       } else {
         const errorText = await response.text();
         alert(`Upload failed: ${errorText}`);
       }
     } catch (error) {
       console.error('Error uploading beat:', error);
-      alert('An error occurred during upload.');
+      alert('Wystąpił błąd podczas przesyłania.');
     }
   };
 
-  if (!isAdmin) return <div className="text-center p-5">404 Not Found</div>;
+  if (!isAdmin) return <div className="text-center p-5">404 Nie znaleziono</div>;
 
   return (
     <div className="flex justify-center items-start min-h-screen p-4 sm:p-6 bg-darker text-text">
       <div className="bg-darkest rounded-lg shadow-lg p-6 w-full max-w-lg">
-        <h2 className="text-2xl font-bold text-center mb-6">Upload New Beat</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Prześlij nowy bit</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <InputField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <InputField label="Tytuł" value={title} onChange={(e) => setTitle(e.target.value)} />
           <InputField label="BPM" type="number" value={bpm} onChange={(e) => setBpm(Number(e.target.value))} />
-          <InputField label="Musical Key" value={musicalKey} onChange={(e) => setMusicalKey(e.target.value)} />
-          <InputField label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} />
-          <InputField label="Authors (comma-separated)" value={authorNames} onChange={(e) => setAuthorNames(e.target.value)} />
-          <InputField label="Sample Info (optional)" value={sample} onChange={(e) => setSample(e.target.value)} />
-          <FileInput label="Image" accept="image/*" onChange={handleImageChange} />
+          <InputField label="Tonacja" value={musicalKey} onChange={(e) => setMusicalKey(e.target.value)} />
+          <InputField label="Tagi (oddzielone przecinkiem)" value={tags} onChange={(e) => setTags(e.target.value)} />
+          <InputField label="Autorzy (oddzieleni przecinkiem)" value={authorNames} onChange={(e) => setAuthorNames(e.target.value)} />
+          <InputField label="Info o samplu (opcjonalne)" value={sample} onChange={(e) => setSample(e.target.value)} />
+          <FileInput label="Okładka" accept="image/*" onChange={handleImageChange} />
           <FileInput label="MP3" accept="audio/mp3" onChange={(e) => setMp3File(e.target.files?.[0] || null)} />
-          <FileInput label="ZIP (optional)" accept=".zip" onChange={(e) => setZipFile(e.target.files?.[0] || null)} />
-          <Checkbox label="MP3 only (for old beats without project files)" checked={isMp3Only} onChange={(e) => setIsMp3Only(e.target.checked)} />
-          <button type="submit" className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 transition-colors">Upload Beat</button>
+          <FileInput label="ZIP (opcjonalne)" accept=".zip" onChange={(e) => setZipFile(e.target.files?.[0] || null)} />
+          <Checkbox label="Tylko MP3 (dla starych bitów bez plików projektu)" checked={isMp3Only} onChange={(e) => setIsMp3Only(e.target.checked)} />
+          <button type="submit" className="w-full bg-secondary text-white p-3 rounded-md hover:bg-secondary/80 transition-colors">Prześlij bit</button>
         </form>
       </div>
     </div>
@@ -133,7 +133,7 @@ const InputField: React.FC<{ label: string, value: string | number, onChange: (e
 ({ label, value, onChange, type = 'text' }) => (
     <div>
         <label className="block mb-1">{label}:</label>
-        <input type={type} value={value} onChange={onChange} className="w-full p-2 border border-gray-600 bg-dark text-white rounded-md" />
+        <input type={type} value={value} onChange={onChange} className="w-full p-2 border border-light/30 bg-dark text-text rounded-md focus:outline-none focus:border-secondary" />
     </div>
 );
 
@@ -141,14 +141,14 @@ const FileInput: React.FC<{ label: string, accept: string, onChange: (e: React.C
 ({ label, accept, onChange }) => (
     <div>
         <label className="block mb-1">{label}:</label>
-        <input type="file" accept={accept} onChange={onChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+        <input type="file" accept={accept} onChange={onChange} className="w-full text-sm text-lightest file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary/20 file:text-text hover:file:bg-secondary/40" />
     </div>
 );
 
 const Checkbox: React.FC<{ label: string, checked: boolean, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = 
 ({ label, checked, onChange }) => (
     <div className="flex items-center">
-        <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+        <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-light/30 text-secondary focus:ring-secondary/50" />
         <label className="ml-2 block text-sm">{label}</label>
     </div>
 );
