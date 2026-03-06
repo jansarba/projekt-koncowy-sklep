@@ -159,6 +159,20 @@ export function getMockOrder(id: number): MockOrder | null {
   return getMockOrders().find((o) => o.id === id) ?? null;
 }
 
+export function getMockPurchasedBeats(): Array<MockCartItem & { order_id: number }> {
+  const orders = getMockOrders().filter(o => o.is_paid);
+  const map = new Map<number, MockCartItem & { order_id: number }>();
+  for (const order of orders) {
+    for (const item of order.items) {
+      const existing = map.get(item.beat_id);
+      if (!existing || item.license_price > existing.license_price) {
+        map.set(item.beat_id, { ...item, order_id: order.id });
+      }
+    }
+  }
+  return Array.from(map.values());
+}
+
 export function payMockOrder(id: number): MockOrder | null {
   const orders = getMockOrders();
   const order = orders.find((o) => o.id === id);
