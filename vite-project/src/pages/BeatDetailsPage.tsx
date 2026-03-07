@@ -5,6 +5,7 @@ import WaveformOverlay from '../components/WaveformOverlay';
 import { Licenses, License } from '../components/Licenses';
 import { useMock } from '../contexts/MockContext';
 import { mockBeatDetails, addToMockCart, getMockCart, getMockPurchasedBeats } from '../mockData';
+import { useMusicPlayer } from '../contexts/MusicPlayerContext';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -46,6 +47,16 @@ export const BeatDetailsPage: React.FC = () => {
   const [_currentTime, setCurrentTime] = useState(0);
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
 
+  const { isPlaying: footerIsPlaying, setIsPlaying: setFooterIsPlaying, currentBeatUrl: footerBeatUrl } = useMusicPlayer();
+
+  useEffect(() => {
+    if (isPlaying) setFooterIsPlaying(false);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (footerIsPlaying && footerBeatUrl) setIsPlaying(false);
+  }, [footerIsPlaying, footerBeatUrl]);
+
   const [successMessage, setSuccessMessage] = useState('');
   const [opinionText, setOpinionText] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -71,6 +82,7 @@ export const BeatDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+    setError('');
 
     if (isMockMode) {
       const mock = mockBeatDetails[Number(id)];
@@ -93,7 +105,9 @@ export const BeatDetailsPage: React.FC = () => {
             fetch(`${baseURL}/api/beats/${id}/opinions`)
         ]);
 
-        if (!beatResponse.ok) throw new Error('Failed to fetch beat details');
+        if (!beatResponse.ok || !beatResponse.headers.get('content-type')?.includes('application/json')) {
+          throw new Error('Serwer niedostępny. Włącz tryb demo lub sprawdź połączenie.');
+        }
         const beatData: BeatDetails = await beatResponse.json();
         setBeatDetails(beatData);
         document.title = beatData.title;
@@ -266,15 +280,26 @@ export const BeatDetailsPage: React.FC = () => {
   if (!beatDetails) return <div className="p-6 text-texthover">Nie znaleziono bitu.</div>;
 
   return (
-    <div className="beat-details-page">
+    <div className="beat-details-page px-6 py-8">
       <div className="beat-details flex flex-col md:flex-row gap-8 flex-wrap justify-around lg:justify-between">
         <div className="flex flex-col gap-4 flex-grow max-w-md">
           <h1 className="text-2xl font-bold">{beatDetails.title}</h1>
-          <div className="beat-info">
-            <p><strong>BPM:</strong> {beatDetails.bpm}</p>
-            <p><strong>Tonacja:</strong> {beatDetails.musical_key}</p>
-            <p><strong>Autor:</strong> {beatDetails.authors.join(', ')}</p>
-            <p><strong>Tagi:</strong> {beatDetails.tags.join(', ')}</p>
+          <div className="beat-info flex flex-col gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-darkes text-texthover border border-light/30">{beatDetails.musical_key}</span>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-darkes text-texthover border border-light/30">{beatDetails.bpm} BPM</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-lightest uppercase tracking-wider shrink-0">Autor</span>
+              <span className="text-sm text-texthover">{beatDetails.authors.join(', ')}</span>
+            </div>
+            {beatDetails.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {beatDetails.tags.map(tag => (
+                  <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-darkest text-lightest">#{tag}</span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         
@@ -311,13 +336,16 @@ export const BeatDetailsPage: React.FC = () => {
         </div>
       </div>
       
-      <div className="waveform-section flex flex-col items-center gap-4 p-4 mt-6">
-          <button className="p-2 bg-darkes text-white rounded border border-white/20" onClick={() => setIsPlaying(p => !p)}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor">
+      <div className="waveform-section flex items-center gap-4 p-4 mt-6">
+          <button
+            className="shrink-0 w-16 h-16 rounded-full bg-secondary/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-secondary transition-colors duration-200"
+            onClick={() => setIsPlaying(p => !p)}
+          >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
                   {isPlaying ? <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" /> : <path d="M8 5v14l11-7L8 5z" />}
               </svg>
           </button>
-          <div className="w-full">
+          <div className="flex-1 min-w-0">
               <WaveformOverlay audioUrl={beatDetails.mp3_url} isPlaying={isPlaying} setCurrentTime={setCurrentTime} />
           </div>
       </div>
@@ -328,30 +356,33 @@ export const BeatDetailsPage: React.FC = () => {
           </div>
       )}
 
-      <div className="opinions-section mt-8">
-        <h2 className="text-xl font-semibold">Opinie</h2>
+      <div className="opinions-section mt-10">
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-xl font-semibold shrink-0">Opinie</h2>
+          <div className="flex-1 h-px bg-light/40" />
+        </div>
         {decodedToken ? (
-          <form onSubmit={handleOpinionSubmit} className="mt-4 space-y-4">
-            <input type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-darker border border-light/30 p-2 w-full text-text rounded placeholder:text-lightest focus:outline-none focus:border-secondary" placeholder="Nazwa (opcjonalna)" />
-            <textarea value={opinionText} onChange={(e) => setOpinionText(e.target.value)} className="bg-darker border border-light/30 p-2 w-full text-text rounded placeholder:text-lightest focus:outline-none focus:border-secondary" placeholder="Napisz swoją opinię..." required />
-            <button type="submit" className="p-2 bg-tertiary text-white rounded">Dodaj opinię</button>
+          <form onSubmit={handleOpinionSubmit} className="mb-8 space-y-3 bg-darker border border-light/20 rounded-xl p-4">
+            <input type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} className="bg-darkes border border-light/20 p-2.5 w-full text-text rounded-lg placeholder:text-lightest focus:outline-none focus:border-secondary/60 text-sm" placeholder="Nazwa (opcjonalna)" />
+            <textarea value={opinionText} onChange={(e) => setOpinionText(e.target.value)} className="bg-darkes border border-light/20 p-2.5 w-full text-text rounded-lg placeholder:text-lightest focus:outline-none focus:border-secondary/60 text-sm min-h-[80px]" placeholder="Napisz swoją opinię..." required />
+            <button type="submit" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-white rounded-lg text-sm font-medium transition-colors">Dodaj opinię</button>
           </form>
         ) : (
-          <p className="mt-4 text-texthover">Zaloguj się by dodać opinię.</p>
+          <p className="mb-8 text-sm text-texthover bg-darker border border-light/20 rounded-xl p-4">Zaloguj się by dodać opinię.</p>
         )}
-        <div className="opinions-list mt-6 space-y-4">
+        <div className="space-y-3">
           {opinions.length > 0 ? opinions.map((opinion) => (
-            <div key={opinion.id} className="opinion-item border-b border-light/20 py-4">
-                <div className="flex justify-between items-center text-sm text-texthover">
-                    <strong>{opinion.name}</strong>
-                    <span>{new Date(opinion.created_at).toLocaleString()}</span>
+            <div key={opinion.id} className="bg-darker border border-light/20 rounded-xl p-4">
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-semibold text-text">{opinion.name}</span>
+                    <span className="text-xs text-lightest">{new Date(opinion.created_at).toLocaleString()}</span>
                 </div>
-                <p className="mt-2">{opinion.content}</p>
+                <p className="text-sm text-texthover">{opinion.content}</p>
                 {(decodedToken?.id === opinion.user_id || decodedToken?.role === "admin") && (
-                    <button className="text-secondary mt-2 text-xs hover:text-secondary/70" onClick={() => handleDeleteOpinion(opinion.id)}>Usuń</button>
+                    <button className="mt-3 text-secondary hover:text-secondary/70 text-xs transition-colors" onClick={() => handleDeleteOpinion(opinion.id)}>Usuń</button>
                 )}
             </div>
-          )) : <p>Brak opinii.</p>}
+          )) : <p className="text-sm text-lightest">Brak opinii.</p>}
         </div>
       </div>
     </div>
