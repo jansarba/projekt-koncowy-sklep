@@ -13,15 +13,22 @@ export type ItemProps = {
 };
 
 export const Item: React.FC<ItemProps> = ({ id, title, bpm, musical_key, tags, image_url, mp3_url }) => {
-  const { setCurrentBeatUrl, setCurrentBeatImage, setCurrentBeatName, setCurrentBeatId } = useMusicPlayer();
+  const { setCurrentBeatUrl, setCurrentBeatImage, setCurrentBeatName, setCurrentBeatId, currentBeatId, isPlaying, setIsPlaying } = useMusicPlayer();
   const navigate = useNavigate();
+
+  const isCurrentBeat = currentBeatId === id;
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentBeatUrl(mp3_url);
-    setCurrentBeatImage(image_url);
-    setCurrentBeatName(title);
-    setCurrentBeatId(id);
+    if (isCurrentBeat) {
+      setIsPlaying((prev) => !prev);
+    } else {
+      setCurrentBeatUrl(mp3_url);
+      setCurrentBeatImage(image_url);
+      setCurrentBeatName(title);
+      setCurrentBeatId(id);
+      setIsPlaying(true);
+    }
   };
 
   const handleNavigate = () => {
@@ -45,8 +52,11 @@ export const Item: React.FC<ItemProps> = ({ id, title, bpm, musical_key, tags, i
           className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
         >
           <div className="w-14 h-14 rounded-full bg-secondary/90 backdrop-blur-sm flex items-center justify-center transform scale-75 group-hover:scale-100 transition-transform duration-300 shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white ml-1" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7L8 5z" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+              {isCurrentBeat && isPlaying
+                ? <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                : <path d="M8 5v14l11-7L8 5z" />
+              }
             </svg>
           </div>
         </button>
